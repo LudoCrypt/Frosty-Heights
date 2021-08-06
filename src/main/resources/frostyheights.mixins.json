@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "net.ludocrypt.frostyheights.mixin",
+	"compatibilityLevel": "JAVA_16",
+	"mixins": [
+		"DimensionTypeMixin",
+		"MultiNoiseBiomeSourceAccessor"
+	],
+	"client": [
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

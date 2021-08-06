@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "frostyheights",
+	"version": "${version}",
+	"name": "Frosty Heights",
+	"description": "Welcome to the 9th circle.\nFrosty Heights adds a new dimension to the game, The Hiemal.\nThe Hiemal is a mysterious and mystical land of icicles and soul searching foe. Watch where you step as going in unprotected can be your downfall, into the icy void below.\nAuthor List:\nLudoCrypt - Musician and Developer\nSlice - The soul reason this mod exists, and our main artist!\nRoberto - Secondary Developer\nshadowmaster435 - Tertiary Developer, mainly AI\nPhantom - Story/Lore Writer\nUraneptus - Promotional Management\nCauliflower - Secondary Artist\nTamakii - My good friend to keep the mod in a direction of the public!\n\nWe are Team Crypt. Glad to have you enjoy our mods.",
+	"authors": [
+		"LudoCrypt",
+		"Slice",
+		"Roberto",
+		"shadowmaster435",
+		"Phantom",
+		"Uraneptus",
+		"Cauliflower",
+		"Tamakii",
+		"Team Crypt"
+	],
+	"contact": {
+		"homepage": "https://www.curseforge.com/minecraft/mc-mods/frosty-heights",
+		"sources": "https://github.com/LudoCrypt/Frosty-Heights"
+	},
+	"license": "LGPLv3",
+	"icon": "assets/frostyheights/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.ludocrypt.frostyheights.FrostyHeights"
+		],
+		"client": [
+			"net.ludocrypt.frostyheights.client.FrostyHeightsClient"
+		]
+	},
+	"mixins": [
+		"frostyheights.mixins.json"
+	],
+	"depends": {
+		"fabric": "*",
+		"minecraft": "1.17.x"
+	}
+}
