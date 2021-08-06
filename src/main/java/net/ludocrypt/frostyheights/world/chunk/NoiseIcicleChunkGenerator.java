@@ -4,6 +4,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import net.ludocrypt.frostyheights.block.SnowyFacingBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.FacingBlock;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.state.property.Property;
+import net.minecraft.util.math.Direction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -70,7 +79,7 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	public final PolynomialSplineFunction splineFunction;
 
 	public static NoiseIcicleChunkGenerator getHiemal(Registry<Biome> biomeRegistry, long seed) {
-		return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.Cellular, RotationType3D.None, 0.03F, FractalType.Ridged, 1, 1.5F, 2.2F, 0.7F, 2.1F, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.0F, DomainWarpType.OpenSimplex2Reduced, 95.0F), 0.125F, FrostyHeightsBlocks.SHLICE.getDefaultState(), Lists.newArrayList(new Vector2D(0.0D, 0.0D), new Vector2D(0.25D, 1.0D), new Vector2D(0.75D, 0.5D), new Vector2D(1.0D, 1.0D)));
+	return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.OpenSimplex2S, RotationType3D.None, 0.03F, FractalType.Ridged, 2, 1F, 1F, 0.7F, .5F, CellularDistanceFunction.Hybrid, CellularReturnType.Distance2Add, 1.0F, DomainWarpType.OpenSimplex2, 3.0F), 0.125F, FrostyHeightsBlocks.SHLICE.getDefaultState().with(SnowyFacingBlock.FACING, Direction.UP), Lists.newArrayList(new Vector2D(0.0D, 0.0D), new Vector2D(0.25D, 1.0D), new Vector2D(0.75D, 0.5D), new Vector2D(1.0D, 1.0D)));
 	}
 
 	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite noise, float threshold, BlockState baseBlock, List<Vector2D> interpolationPoints) {
@@ -109,12 +118,35 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 
 	@Override
 	public CompletableFuture<Chunk> populateNoise(Executor executor, StructureAccessor accessor, Chunk chunk) {
-		for (int ix = 0; ix < 16; ix++) {
+
+		for (int ix = 0; ix < 16; ix++ ) {
+			for (int iz = 0; iz < 16; iz++ ) {
+				for (int iy = 0; iy < chunk.getHeight(); iy++ ) {
+					int x = (chunk.getPos().getStartX() + ix);
+					int y = chunk.getBottomY() + iy;
+					int z = (chunk.getPos().getStartZ() + iz);
+					chunk.setBlockState(new BlockPos( x, y, z), baseBlock, false);
+					if (noise.GetNoise(x, y, z) > -.25f) {
+						chunk.setBlockState(new BlockPos( x, y, z), Blocks.AIR.getDefaultState(), false);
+
+
+					}
+					if (noise.GetNoise(x,y,z) < -.25f) {
+						if (Math.random() > .75) {
+
+							for (double i = 0; 0 < Math.floor(Math.random() * 3); ++i) {
+								chunk.setBlockState(new BlockPos(x, -i + y, z), baseBlock, false);
+							}
+						}
+					}
+					}
+
+				}
+			}
+		/*for (int ix = 0; ix < 16; ix++) {
 			for (int iz = 0; iz < 16; iz++) {
 				for (int iy = 0; iy < chunk.getHeight(); iy++) {
-					int x = chunk.getPos().getStartX() + ix;
-					int y = chunk.getBottomY() + iy;
-					int z = chunk.getPos().getStartZ() + iz;
+
 					if (noise.GetNoise(x, y, z) > this.threshold) {
 //						double v = this.splineFunction.value(y / (double) chunk.getHeight());
 //						if (v < this.threshold) {
@@ -124,7 +156,7 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 					}
 				}
 			}
-		}
+		}*/
 
 		return CompletableFuture.completedFuture(chunk);
 	}
