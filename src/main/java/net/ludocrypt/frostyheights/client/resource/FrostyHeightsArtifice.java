@@ -21,8 +21,8 @@ public class FrostyHeightsArtifice {
 			pack.setDisplayName("FrostyHeights Resources");
 			pack.setDescription("FrostyHeights Resources");
 
-			shlice(pack, FrostyHeightsBlocks.SHLICE, get("shlice_top"), get("shlice_side"), get("shlice_top"), get("snowy_shlice_side"), get("shlice_side"));
-			shlice(pack, FrostyHeightsBlocks.MOSSY_SHLICE, get("shlice_top"), get("mossy_shlice_side"), get("mossy_shlice_top"), get("snowy_mossy_shlice_side"), get("mossy_shlice_side_upside_down"));
+			hiemarl(pack, FrostyHeightsBlocks.HIEMARL, get("hiemarl_top"), get("hiemarl_side"), get("hiemarl_top"), get("snowy_hiemarl_side"), get("snowy_hiemarl_top"), get("hiemarl_side"));
+			hiemarl(pack, FrostyHeightsBlocks.MOSSY_HIEMARL, get("hiemarl_top"), get("mossy_hiemarl_side"), get("mossy_hiemarl_top"), get("snowy_mossy_hiemarl_side"), get("snowy_mossy_hiemarl_top"), get("mossy_hiemarl_side_upside_down"));
 
 			pack.addTranslations(new Identifier("en_us"), (lang) -> {
 				Registry.ITEM.stream().filter((item) -> {
@@ -37,9 +37,9 @@ public class FrostyHeightsArtifice {
 		return "frostyheights:block/" + texture;
 	}
 
-	private static void shlice(ClientResourcePackBuilder pack, Block blockRegistry, String bottom, String side, String top, String snowySide, String upsideDownSide) {
+	private static void hiemarl(ClientResourcePackBuilder pack, Block blockRegistry, String bottom, String side, String top, String snowySide, String snowyTop, String upsideDownSide) {
 		String block = Registry.BLOCK.getId(blockRegistry).getPath();
-		shliceBlockState(pack, block);
+		hiemarlBlockState(pack, block);
 		pack.addBlockModel(FrostyHeights.id(block), (model) -> {
 			model.parent(new Identifier("block/cube"));
 			model.texture("up", new Identifier(top));
@@ -62,18 +62,18 @@ public class FrostyHeightsArtifice {
 		});
 		pack.addBlockModel(FrostyHeights.id(block + "_snowy"), (model) -> {
 			model.parent(new Identifier("block/cube"));
-			model.texture("up", new Identifier("block/snow"));
+			model.texture("up", new Identifier(snowyTop));
 			model.texture("down", new Identifier(bottom));
 			model.texture("north", new Identifier(snowySide));
 			model.texture("east", new Identifier(snowySide));
 			model.texture("south", new Identifier(snowySide));
 			model.texture("west", new Identifier(snowySide));
-			model.texture("particle", new Identifier("block/snow"));
+			model.texture("particle", new Identifier(snowyTop));
 		});
 		blockItemModel(pack, block);
 	}
 
-	private static void shliceBlockState(ClientResourcePackBuilder pack, String block) {
+	private static void hiemarlBlockState(ClientResourcePackBuilder pack, String block) {
 		pack.addBlockState(FrostyHeights.id(block), (state) -> {
 			state.variant("snowy=false,facing=up", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
