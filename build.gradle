@@ -23,7 +23,6 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-	includeMod "org.apache.commons:commons-math3:${project.apache_math_version}"
 	includeMod "com.lettuce.fudge:artifice:${project.artifice_version}"
 }
 

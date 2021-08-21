@@ -24,7 +24,7 @@ public class DimensionTypeMixin {
 
 	@Inject(method = "addRegistryDefaults", at = @At("TAIL"), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
 	private static void frostyHeights$addRegistryDefaults(DynamicRegistryManager.Impl registryManager, CallbackInfoReturnable<DynamicRegistryManager.Impl> ci, MutableRegistry<DimensionType> mutableRegistry) {
-		mutableRegistry.add(FrostyHeightsWorld.THE_HIEMAL_DIMENSION_TYPE_REGISTRY_KEY, FrostyHeightsWorld.THE_HIEMAL, Lifecycle.stable());
+		mutableRegistry.add(FrostyHeightsWorld.THE_HIEMAL_DIMENSION_TYPE_REGISTRY_KEY, FrostyHeightsWorld.THE_HIEMAL_DIMENSION_TYPE, Lifecycle.stable());
 	}
 
 	@Inject(method = "createDefaultDimensionOptions", at = @At("TAIL"), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)

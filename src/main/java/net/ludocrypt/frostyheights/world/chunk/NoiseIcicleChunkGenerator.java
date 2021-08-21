@@ -1,15 +1,10 @@
 package net.ludocrypt.frostyheights.world.chunk;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.jetbrains.annotations.Nullable;
 
-import com.google.common.collect.Lists;
-import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -24,83 +19,77 @@ import net.ludocrypt.frostyheights.util.FastNoiseLite.FractalType;
 import net.ludocrypt.frostyheights.util.FastNoiseLite.NoiseType;
 import net.ludocrypt.frostyheights.util.FastNoiseLite.RotationType3D;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.Heightmap.Type;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkRandom;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.StructuresConfig;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
 
 public class NoiseIcicleChunkGenerator extends ChunkGenerator {
-	public static final Codec<Vector2D> VECTOR_2D_CODEC = RecordCodecBuilder.create((instance) -> {
-		return instance.group(Codec.DOUBLE.fieldOf("x").stable().forGetter((vec2d) -> {
-			return vec2d.getX();
-		}), Codec.DOUBLE.fieldOf("y").stable().forGetter((vec2d) -> {
-			return vec2d.getY();
-		})).apply(instance, instance.stable(Vector2D::new));
-	});
 
 	public static final Codec<NoiseIcicleChunkGenerator> CODEC = RecordCodecBuilder.create((instance) -> {
 		return instance.group(BiomeSource.CODEC.fieldOf("biome_source").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.biomeSource;
 		}), Codec.LONG.fieldOf("seed").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.worldSeed;
-		}), FastNoiseLite.CODEC.fieldOf("noise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.noise;
-		}), Codec.FLOAT.fieldOf("threshold").stable().forGetter((chunkGenerator) -> {
+		}), FastNoiseLite.CODEC.fieldOf("cellNoise").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.cellNoise;
+		}), FastNoiseLite.CODEC.fieldOf("translateXNoise").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.translateXNoise;
+		}), FastNoiseLite.CODEC.fieldOf("translateZNoise").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.translateZNoise;
+		}), FastNoiseLite.CODEC.fieldOf("pokeNoise").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.pokeNoise;
+		}), Codec.DOUBLE.fieldOf("threshold").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.threshold;
+		}), Codec.INT.fieldOf("translateXScale").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.translateXScale;
+		}), Codec.INT.fieldOf("translateZScale").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.translateZScale;
 		}), BlockState.CODEC.fieldOf("baseBlock").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.baseBlock;
-		}), Codec.list(VECTOR_2D_CODEC).fieldOf("interpolationPoints").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.interpolationPoints;
-		}), Codec.INT.fieldOf("voidBufferHeight").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.voidBufferHeight;
-		}), Codec.INT.fieldOf("wastelandBufferHeight").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.wastelandBufferHeight;
 		})).apply(instance, instance.stable(NoiseIcicleChunkGenerator::new));
 	});
 
 	public final BiomeSource biomeSource;
 	public final long worldSeed;
-	public final FastNoiseLite noise;
-	public final float threshold;
+	public final FastNoiseLite cellNoise;
+	public final FastNoiseLite translateXNoise;
+	public final FastNoiseLite translateZNoise;
+	public final FastNoiseLite pokeNoise;
+	public final double threshold;
+	public final int translateXScale;
+	public final int translateZScale;
 	public final BlockState baseBlock;
-	public final SplineInterpolator splineInterpolator;
-	public final List<Vector2D> interpolationPoints;
-	public final PolynomialSplineFunction splineFunction;
-	public final int voidBufferHeight;
-	public final int wastelandBufferHeight;
 
 	public static NoiseIcicleChunkGenerator getHiemal(Registry<Biome> biomeRegistry, long seed) {
-		return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.OpenSimplex2S, RotationType3D.None, 0.03F, FractalType.Ridged, 2, 1F, 1F, 0.7F, .5F, CellularDistanceFunction.Hybrid, CellularReturnType.Distance2Add, 1.0F, DomainWarpType.OpenSimplex2, 3.0F), -0.25F, FrostyHeightsBlocks.HIEMARL.getDefaultState().with(SnowyFacingBlock.FACING, Direction.UP), Lists.newArrayList(new Vector2D(0.0D, 0.0D), new Vector2D(0.3D, 0.6D), new Vector2D(0.6D, 0.7D), new Vector2D(0.85D, 0.8D), new Vector2D(1.0D, 1.0D)), 64, 256);
+		return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D), FastNoiseLite.create(false, seed ^ 1, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(true, seed ^ 3, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D), 0.125D, 5, 5, FrostyHeightsBlocks.HIEMARL.getDefaultState().with(SnowyFacingBlock.FACING, Direction.UP));
 	}
 
-	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite noise, float threshold, BlockState baseBlock, List<Vector2D> interpolationPoints, int voidBufferHeight, int wastelandBufferHeight) {
+	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite cellNoise, FastNoiseLite translateXNoise, FastNoiseLite translateZNoise, FastNoiseLite pokeNoise, double threshold, int translateXScale, int translateZScale, BlockState baseBlock) {
 		super(biomeSource, biomeSource, new StructuresConfig(false), worldSeed);
 		this.biomeSource = biomeSource;
 		this.worldSeed = worldSeed;
-		this.noise = noise;
+		this.cellNoise = cellNoise;
+		this.translateXNoise = translateXNoise;
+		this.translateZNoise = translateZNoise;
+		this.pokeNoise = pokeNoise;
 		this.threshold = threshold;
+		this.translateXScale = translateXScale;
+		this.translateZScale = translateZScale;
 		this.baseBlock = baseBlock;
-		this.splineInterpolator = new SplineInterpolator();
-		this.interpolationPoints = interpolationPoints;
-		double[] xList = new double[this.interpolationPoints.size()];
-		double[] yList = new double[this.interpolationPoints.size()];
-		for (int i = 0; i < this.interpolationPoints.size(); i++) {
-			Vector2D pair = this.interpolationPoints.get(i);
-			xList[i] = pair.getX();
-			yList[i] = pair.getY();
-		}
-		this.splineFunction = this.splineInterpolator.interpolate(xList, yList);
-		this.voidBufferHeight = voidBufferHeight;
-		this.wastelandBufferHeight = wastelandBufferHeight;
 	}
 
 	@Override
@@ -110,47 +99,71 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 
 	@Override
 	public ChunkGenerator withSeed(long seed) {
-		return new NoiseIcicleChunkGenerator(this.biomeSource, seed, this.noise, this.threshold, this.baseBlock, this.interpolationPoints, this.voidBufferHeight, this.wastelandBufferHeight);
+		return new NoiseIcicleChunkGenerator(this.biomeSource, seed, this.cellNoise, this.translateXNoise, this.translateZNoise, this.pokeNoise, this.threshold, this.translateXScale, this.translateZScale, this.baseBlock);
 	}
 
 	@Override
 	public void buildSurface(ChunkRegion region, Chunk chunk) {
+		ChunkPos chunkPos = chunk.getPos();
+		ChunkRandom chunkRandom = new ChunkRandom();
+		chunkRandom.setTerrainSeed(chunkPos.x, chunkPos.z);
+		int startX = chunkPos.getStartX();
+		int startZ = chunkPos.getStartZ();
+		BlockPos.Mutable mutable = new BlockPos.Mutable();
 
+		for (int cX = 0; cX < 16; ++cX) {
+			for (int cZ = 0; cZ < 16; ++cZ) {
+				int x = startX + cX;
+				int z = startZ + cZ;
+				int y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE_WG, cX, cZ) + 1;
+				region.getBiome(mutable.set(x, y, z)).buildSurface(chunkRandom, chunk, x, z, y, 0.0D, this.baseBlock, this.baseBlock, this.getSeaLevel(), chunk.getBottomY(), region.getSeed());
+			}
+		}
 	}
 
 	@Override
 	public CompletableFuture<Chunk> populateNoise(Executor executor, StructureAccessor accessor, Chunk chunk) {
-		for (int ix = 0; ix < 16; ix++) {
-			int x = (chunk.getPos().getStartX() + ix);
-			for (int iz = 0; iz < 16; iz++) {
-				int z = (chunk.getPos().getStartZ() + iz);
-				for (int iy = 0; iy < chunk.getHeight(); iy++) {
-					int y = chunk.getBottomY() + iy;
-					double n = noise.GetNoise(x, y, z);
-					if (y > this.voidBufferHeight && y < this.wastelandBufferHeight) {
-						double v = this.splineFunction.value(Math.min(Math.max((y - (this.wastelandBufferHeight - this.voidBufferHeight)) / (double) (chunk.getHeight() - (this.wastelandBufferHeight - this.voidBufferHeight)), 0.0), 1.0));
-						int r = Math.min((int)Math.floor(v * 48) , 49);
-//						System.out.println(r + ", " + v + ", " + y);
-						if ((x % 48 < 24 + r && x % 48 >= 24 - r) &&  (z % 48 < 24 + r && z % 48 >= 24 - r)) {
-							chunk.setBlockState(new BlockPos(x, y, z), baseBlock, false);
-
-//							if (n < (-this.threshold - 1) * (v * 2) + 1) {
-//								chunk.setBlockState(new BlockPos(x, y, z), baseBlock, false);
-//							}
-
-						}
+		return CompletableFuture.supplyAsync(() -> {
+			for (int ix = 0; ix < 16; ix++) {
+				int x = (chunk.getPos().getStartX() + ix);
+				for (int iz = 0; iz < 16; iz++) {
+					int z = (chunk.getPos().getStartZ() + iz);
+					for (int iy = 0; iy < chunk.getHeight(); iy++) {
+						int y = chunk.getBottomY() + iy;
+						sampleHeight(chunk, x, y, z, () -> chunk.setBlockState(new BlockPos(x, y, z), this.baseBlock, false));
 					}
 				}
 			}
-		}
-
-		return CompletableFuture.completedFuture(chunk);
-
+			return chunk;
+		}, Util.getMainWorkerExecutor());
 	}
 
 	@Override
 	public int getHeight(int x, int z, Type heightmap, HeightLimitView world) {
-		return world.getHeight();
+		int height = world.getBottomY();
+		for (int y = world.getTopY(); y > world.getBottomY(); y--) {
+			int h = sampleHeight(world, x, y, z, null);
+			if (h > height) {
+				return h;
+			}
+		}
+		return height;
+	}
+
+	private int sampleHeight(HeightLimitView world, int x, int y, int z, @Nullable Runnable function) {
+		int topBlock = world.getBottomY();
+		if (y < 304) {
+			double n = this.cellNoise.GetNoise(x - this.translateXNoise.GetNoise(x, y, z) * Math.pow(this.translateXScale, 2), z - this.translateZNoise.GetNoise(x, y, z) * Math.pow(this.translateZScale, 2));
+			if (((n > (((double) (y - 192) - (2.5D * 64.0D)) / (185.0D - (2.5D * 160.0D)))) && (n > (((double) (y - 80) - (160.0D)) / (185.0D - (160.0D))))) && (this.pokeNoise.GetNoise(x, y, z) < this.threshold)) {
+				if (y > topBlock) {
+					topBlock = y;
+				}
+				if (function != null) {
+					function.run();
+				}
+			}
+		}
+		return topBlock;
 	}
 
 	@Override

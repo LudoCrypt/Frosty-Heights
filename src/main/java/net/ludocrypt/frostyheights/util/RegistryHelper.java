@@ -8,7 +8,10 @@ import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class RegistryHelper {
@@ -30,9 +33,14 @@ public class RegistryHelper {
 	public static <T extends Item> T get(String id, T item) {
 		return Registry.register(Registry.ITEM, FrostyHeights.id(id), item);
 	}
-	
+
 	public static <T extends Codec<? extends ChunkGenerator>> T get(String id, T item) {
 		return Registry.register(Registry.CHUNK_GENERATOR, FrostyHeights.id(id), item);
+	}
+
+	public static RegistryKey<Biome> get(String id, Biome biome) {
+		Registry.register(BuiltinRegistries.BIOME, FrostyHeights.id(id), biome);
+		return RegistryKey.of(Registry.BIOME_KEY, FrostyHeights.id(id));
 	}
 
 }

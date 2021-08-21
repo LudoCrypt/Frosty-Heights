@@ -8,6 +8,9 @@
 		"MultiNoiseBiomeSourceAccessor"
 	],
 	"client": [
+		"ClientWorldPropertiesMixin",
+		"SkyPropertiesMixin",
+		"WorldRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
