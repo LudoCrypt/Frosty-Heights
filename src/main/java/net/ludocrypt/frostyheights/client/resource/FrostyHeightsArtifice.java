@@ -23,6 +23,8 @@ public class FrostyHeightsArtifice {
 
 			hiemarl(pack, FrostyHeightsBlocks.HIEMARL, get("hiemarl_top"), get("hiemarl_side"), get("hiemarl_top"), get("snowy_hiemarl_side"), get("snowy_hiemarl_top"), get("hiemarl_side"));
 			hiemarl(pack, FrostyHeightsBlocks.MOSSY_HIEMARL, get("hiemarl_top"), get("mossy_hiemarl_side"), get("mossy_hiemarl_top"), get("snowy_mossy_hiemarl_side"), get("snowy_mossy_hiemarl_top"), get("mossy_hiemarl_side_upside_down"));
+			cubeBottomTop(pack, FrostyHeightsBlocks.CLIFFSTONE, get("cliffstone_top"), get("cliffstone_side"), get("cliffstone_top"));
+			cubeBottomTop(pack, FrostyHeightsBlocks.DRAPERSTONE, get("draperstone_top"), get("draperstone_side"), get("draperstone_top"));
 
 			pack.addTranslations(new Identifier("en_us"), (lang) -> {
 				Registry.ITEM.stream().filter((item) -> {
@@ -70,60 +72,143 @@ public class FrostyHeightsArtifice {
 			model.texture("west", new Identifier(snowySide));
 			model.texture("particle", new Identifier(snowyTop));
 		});
+
+		pack.addBlockModel(FrostyHeights.id(block + "_mirrored"), (model) -> {
+			model.parent(FrostyHeights.id("block/cube_mirrored"));
+			model.texture("up", new Identifier(top));
+			model.texture("down", new Identifier(bottom));
+			model.texture("north", new Identifier(side));
+			model.texture("east", new Identifier(side));
+			model.texture("south", new Identifier(side));
+			model.texture("west", new Identifier(side));
+			model.texture("particle", new Identifier(top));
+		});
+		pack.addBlockModel(FrostyHeights.id(block + "_upside_down" + "_mirrored"), (model) -> {
+			model.parent(FrostyHeights.id("block/cube_mirrored"));
+			model.texture("up", new Identifier(bottom));
+			model.texture("down", new Identifier(top));
+			model.texture("north", new Identifier(upsideDownSide));
+			model.texture("east", new Identifier(upsideDownSide));
+			model.texture("south", new Identifier(upsideDownSide));
+			model.texture("west", new Identifier(upsideDownSide));
+			model.texture("particle", new Identifier(top));
+		});
+		pack.addBlockModel(FrostyHeights.id(block + "_snowy" + "_mirrored"), (model) -> {
+			model.parent(FrostyHeights.id("block/cube_mirrored"));
+			model.texture("up", new Identifier(snowyTop));
+			model.texture("down", new Identifier(bottom));
+			model.texture("north", new Identifier(snowySide));
+			model.texture("east", new Identifier(snowySide));
+			model.texture("south", new Identifier(snowySide));
+			model.texture("west", new Identifier(snowySide));
+			model.texture("particle", new Identifier(snowyTop));
+		});
+
 		blockItemModel(pack, block);
 	}
 
 	private static void hiemarlBlockState(ClientResourcePackBuilder pack, String block) {
 		pack.addBlockState(FrostyHeights.id(block), (state) -> {
-			state.variant("snowy=false,facing=up", (variant) -> {
+			state.weightedVariant("snowy=false,facing=up", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
 			});
-			state.variant("snowy=false,facing=down", (variant) -> {
+			state.weightedVariant("snowy=false,facing=down", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 			});
-			state.variant("snowy=false,facing=north", (variant) -> {
+			state.weightedVariant("snowy=false,facing=north", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
 				variant.rotationX(90);
 			});
-			state.variant("snowy=false,facing=east", (variant) -> {
+			state.weightedVariant("snowy=false,facing=east", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
 				variant.rotationY(90);
 				variant.rotationX(90);
 			});
-			state.variant("snowy=false,facing=south", (variant) -> {
+			state.weightedVariant("snowy=false,facing=south", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 				variant.rotationX(90);
 			});
-			state.variant("snowy=false,facing=west", (variant) -> {
+			state.weightedVariant("snowy=false,facing=west", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 				variant.rotationY(90);
 				variant.rotationX(90);
 			});
 
-			state.variant("snowy=true,facing=up", (variant) -> {
+			state.weightedVariant("snowy=true,facing=up", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_snowy"));
 			});
-			state.variant("snowy=true,facing=down", (variant) -> {
+			state.weightedVariant("snowy=true,facing=down", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 			});
-			state.variant("snowy=true,facing=north", (variant) -> {
+			state.weightedVariant("snowy=true,facing=north", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
 				variant.rotationX(90);
 			});
-			state.variant("snowy=true,facing=east", (variant) -> {
+			state.weightedVariant("snowy=true,facing=east", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
 				variant.rotationY(90);
 				variant.rotationX(90);
 			});
-			state.variant("snowy=true,facing=south", (variant) -> {
+			state.weightedVariant("snowy=true,facing=south", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 				variant.rotationX(90);
 			});
-			state.variant("snowy=true,facing=west", (variant) -> {
+			state.weightedVariant("snowy=true,facing=west", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block + "_upside_down"));
 				variant.rotationY(90);
 				variant.rotationX(90);
 			});
+
+			state.weightedVariant("snowy=false,facing=up", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_mirrored"));
+			});
+			state.weightedVariant("snowy=false,facing=down", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+			});
+			state.weightedVariant("snowy=false,facing=north", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_mirrored"));
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=false,facing=east", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_mirrored"));
+				variant.rotationY(90);
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=false,facing=south", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=false,facing=west", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+				variant.rotationY(90);
+				variant.rotationX(90);
+			});
+
+			state.weightedVariant("snowy=true,facing=up", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_snowy" + "_mirrored"));
+			});
+			state.weightedVariant("snowy=true,facing=down", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+			});
+			state.weightedVariant("snowy=true,facing=north", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_mirrored"));
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=true,facing=east", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_mirrored"));
+				variant.rotationY(90);
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=true,facing=south", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+				variant.rotationX(90);
+			});
+			state.weightedVariant("snowy=true,facing=west", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block + "_upside_down" + "_mirrored"));
+				variant.rotationY(90);
+				variant.rotationX(90);
+			});
+
 		});
 	}
 

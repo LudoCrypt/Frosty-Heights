@@ -20,7 +20,7 @@ public class SnowyFacingBlock extends FacingBlock {
 
 	public SnowyFacingBlock(AbstractBlock.Settings settings) {
 		super(settings);
-		this.setDefaultState(this.getDefaultState().with(SNOWY, false));
+		this.setDefaultState(this.getDefaultState().with(SNOWY, false).with(FACING, Direction.UP));
 	}
 
 	@Override
