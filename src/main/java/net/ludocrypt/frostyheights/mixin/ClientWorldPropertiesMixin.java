@@ -20,7 +20,7 @@ public class ClientWorldPropertiesMixin {
 	private void corners$getSkyDarknessHeight(HeightLimitView world, CallbackInfoReturnable<Double> ci) {
 		MinecraftClient client = MinecraftClient.getInstance();
 		if (client.world.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_WORLD_REGISTRY_KEY)) {
-			ci.setReturnValue(-256.0D);
+			ci.setReturnValue(-64.0D);
 		}
 	}
 

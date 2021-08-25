@@ -5,12 +5,15 @@
 	"compatibilityLevel": "JAVA_16",
 	"mixins": [
 		"DimensionTypeMixin",
-		"MultiNoiseBiomeSourceAccessor"
+		"MultiNoiseBiomeSourceAccessor",
+		"BlockMixin"
 	],
 	"client": [
 		"ClientWorldPropertiesMixin",
 		"SkyPropertiesMixin",
-		"WorldRendererMixin"
+		"WorldRendererMixin",
+		"BackgroundRendererMixin",
+		"MinecraftClientAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -22,7 +22,7 @@ public class MossyIcemarshBiome {
 
 		BiomeEffects.Builder biomeEffectsBuilder = new BiomeEffects.Builder();
 
-		biomeEffectsBuilder.fogColor(Color.of(176, 184, 232));
+		biomeEffectsBuilder.fogColor(Color.of(179, 214, 186));
 		biomeEffectsBuilder.waterColor(Color.of(80, 130, 196));
 		biomeEffectsBuilder.waterFogColor(Color.of(120, 138, 204));
 		biomeEffectsBuilder.skyColor(Color.of(184, 200, 227));

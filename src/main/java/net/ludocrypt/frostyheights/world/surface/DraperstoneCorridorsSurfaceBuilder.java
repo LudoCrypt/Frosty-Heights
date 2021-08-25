@@ -7,8 +7,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.mojang.datafixers.util.Pair;
 
+import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
 import net.ludocrypt.frostyheights.util.ChunkEncodedChunkGenerator;
 import net.ludocrypt.frostyheights.world.chunk.NoiseIcicleChunkGenerator;
+import net.ludocrypt.frostyheights.world.surface.config.QuinarySurfaceConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SnowBlock;
@@ -18,9 +20,8 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkRandom;
 import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
-import net.minecraft.world.gen.surfacebuilder.TernarySurfaceConfig;
 
-public class DraperstoneCorridorsSurfaceBuilder extends SurfaceBuilder<TernarySurfaceConfig> {
+public class DraperstoneCorridorsSurfaceBuilder extends SurfaceBuilder<QuinarySurfaceConfig> {
 
 	private long seed;
 	private ImmutableList<Pair<Integer, OctavePerlinNoiseSampler>> noisemapOne = ImmutableList.of();
@@ -28,12 +29,13 @@ public class DraperstoneCorridorsSurfaceBuilder extends SurfaceBuilder<TernarySu
 	private OctavePerlinNoiseSampler shoreNoise;
 
 	public DraperstoneCorridorsSurfaceBuilder() {
-		super(TernarySurfaceConfig.CODEC);
+		super(QuinarySurfaceConfig.CODEC);
 	}
 
 	@Override
-	public void generate(Random random, Chunk chunkGroup, Biome biome, int x, int z, int height, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, int i, long l, TernarySurfaceConfig surfaceConfig) {
-		SurfaceBuilder.DEFAULT.generate(random, chunkGroup, biome, x, z, height, noise, defaultBlock, defaultFluid, 0, i, l, surfaceConfig);
+	public void generate(Random random, Chunk chunkGroup, Biome biome, int x, int z, int height, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, int i, long l, QuinarySurfaceConfig surfaceConfig) {
+		generate(random, chunkGroup, biome, x, z, height, noise, defaultBlock, defaultFluid, surfaceConfig.getTopMaterial(), surfaceConfig.getUnderMaterial(), 0, i, false);
+		generate(random, chunkGroup, biome, x, z, height, noise, defaultBlock, defaultFluid, surfaceConfig.getBelowMaterial(), surfaceConfig.getAboveMaterial(), 0, i, true);
 		if (chunkGroup instanceof ChunkEncodedChunkGenerator chunkEncoding) {
 			Chunk chunk = chunkEncoding.wrapper;
 			if (chunkEncoding.chunkGenerator instanceof NoiseIcicleChunkGenerator chunkGenerator) {
@@ -42,13 +44,42 @@ public class DraperstoneCorridorsSurfaceBuilder extends SurfaceBuilder<TernarySu
 					double n = chunkGenerator.getNoiseAt(x, y, z);
 					if (chunkGenerator.isInNoise(x, y, z, n)) {
 						if (((n > 1.15D && n < 1.3D) || (n > 0.85D && n < 1.0D))) {
-							chunk.setBlockState(pos, surfaceConfig.getUnderwaterMaterial(), false);
+							chunk.setBlockState(pos, surfaceConfig.getCakeLayer(), false);
 						}
+						int layer = get(this.noisemapOne, x, z, y);
+						int layer2 = get(this.noisemapTwo, x, z, y);
 						if (chunk.getBlockState(pos.up()).isAir()) {
-							int layer = get(this.noisemapOne, x, z, y);
 							if (layer > 0) {
-								chunk.setBlockState(pos.up(), Blocks.SNOW.getDefaultState().with(SnowBlock.LAYERS, Math.min(Math.max(layer + get(this.noisemapTwo, x, z, y), 1), 8)), false);
+								chunk.setBlockState(pos.up(), Blocks.SNOW.getDefaultState().with(SnowBlock.LAYERS, Math.min(Math.max(layer + layer2, 1), 8)), false);
 							}
+						} else if (chunk.getBlockState(pos.down()).isAir() && chunk.getBlockState(pos).isOf(FrostyHeightsBlocks.DRAPERSTONE)) {
+							if (layer2 >= 2 || random.nextInt(5) == 0) {
+								chunk.setBlockState(pos.down(), FrostyHeightsBlocks.DRAPERSTONE_ROOTS.getDefaultState(), false);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	protected void generate(Random random, Chunk chunk, Biome biome, int x, int z, int height, double noise, BlockState defaultBlock, BlockState fluidBlock, BlockState topBlock, BlockState underBlock, int seaLevel, int i, boolean flip) {
+		int j = (int) (noise / 3.0D + 3.0D + random.nextDouble() * 0.25D);
+		for (int y = chunk.getBottomY(); y <= chunk.getTopY(); ++y) {
+			BlockPos pos = new BlockPos(x, y, z);
+			if (flip) {
+				if (chunk.getBlockState(pos).isAir() && chunk.getBlockState(pos.up()).isOf(defaultBlock.getBlock())) {
+					for (int k = 1; k <= j; k++) {
+						if (chunk.getBlockState(pos.up(k)).isOf(defaultBlock.getBlock())) {
+							chunk.setBlockState(pos.up(k), k == 0 ? topBlock : underBlock, false);
+						}
+					}
+				}
+			} else {
+				if (chunk.getBlockState(pos).isAir() && chunk.getBlockState(pos.down()).isOf(defaultBlock.getBlock())) {
+					for (int k = 1; k <= j; k++) {
+						if (chunk.getBlockState(pos.down(k)).isOf(defaultBlock.getBlock())) {
+							chunk.setBlockState(pos.down(k), k == 0 ? topBlock : underBlock, false);
 						}
 					}
 				}

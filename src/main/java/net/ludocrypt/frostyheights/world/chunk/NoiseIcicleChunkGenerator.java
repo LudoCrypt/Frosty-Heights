@@ -56,8 +56,12 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 			return chunkGenerator.refineZNoise;
 		}), FastNoiseLite.CODEC.fieldOf("pokeNoise").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.pokeNoise;
-		}), Codec.DOUBLE.fieldOf("threshold").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.threshold;
+		}), FastNoiseLite.CODEC.fieldOf("spaghettiPokeNoise").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.spaghettiPokeNoise;
+		}), Codec.DOUBLE.fieldOf("pokeThreshold").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.pokeThreshold;
+		}), Codec.DOUBLE.fieldOf("spaghettiPokeThreshold").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.spaghettiPokeThreshold;
 		}), Codec.INT.fieldOf("translateXScale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.translateXScale;
 		}), Codec.INT.fieldOf("translateZScale").stable().forGetter((chunkGenerator) -> {
@@ -75,16 +79,18 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	public final FastNoiseLite refineXNoise;
 	public final FastNoiseLite refineZNoise;
 	public final FastNoiseLite pokeNoise;
-	public final double threshold;
+	public final FastNoiseLite spaghettiPokeNoise;
+	public final double pokeThreshold;
+	public final double spaghettiPokeThreshold;
 	public final int translateXScale;
 	public final int translateZScale;
 	public final BlockState baseBlock;
 
 	public static NoiseIcicleChunkGenerator getHiemal(Registry<Biome> biomeRegistry, long seed) {
-		return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D), FastNoiseLite.create(false, seed ^ 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 3, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 4, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(false, seed ^ 5, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(true, seed ^ 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D), 0.125D, 5, 5, FrostyHeightsBlocks.HIEMARL.getDefaultState());
+		return new NoiseIcicleChunkGenerator(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), seed, FastNoiseLite.create(true, seed, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D), FastNoiseLite.create(false, seed ^ 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 3, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 4, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(false, seed ^ 5, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(true, seed ^ 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D), FastNoiseLite.create(false, seed ^ 7, NoiseType.Cellular, RotationType3D.ImproveXYPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D), 0.125D, -0.8D, 5, 5, FrostyHeightsBlocks.HIEMARL.getDefaultState());
 	}
 
-	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite cellNoise, FastNoiseLite translateXNoise, FastNoiseLite translateZNoise, FastNoiseLite refineXNoise, FastNoiseLite refineZNoise, FastNoiseLite pokeNoise, double threshold, int translateXScale, int translateZScale, BlockState baseBlock) {
+	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite cellNoise, FastNoiseLite translateXNoise, FastNoiseLite translateZNoise, FastNoiseLite refineXNoise, FastNoiseLite refineZNoise, FastNoiseLite pokeNoise, FastNoiseLite spaghettiPokeNoise, double pokeThreshold, double spaghettiPokeThreshold, int translateXScale, int translateZScale, BlockState baseBlock) {
 		super(biomeSource, biomeSource, new StructuresConfig(false), worldSeed);
 		this.biomeSource = biomeSource;
 		this.worldSeed = worldSeed;
@@ -94,7 +100,9 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 		this.refineXNoise = refineXNoise;
 		this.refineZNoise = refineZNoise;
 		this.pokeNoise = pokeNoise;
-		this.threshold = threshold;
+		this.spaghettiPokeNoise = spaghettiPokeNoise;
+		this.pokeThreshold = pokeThreshold;
+		this.spaghettiPokeThreshold = spaghettiPokeThreshold;
 		this.translateXScale = translateXScale;
 		this.translateZScale = translateZScale;
 		this.baseBlock = baseBlock;
@@ -107,7 +115,7 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 
 	@Override
 	public ChunkGenerator withSeed(long seed) {
-		return new NoiseIcicleChunkGenerator(this.biomeSource, seed, this.cellNoise, this.translateXNoise, this.translateZNoise, this.refineXNoise, this.refineZNoise, this.pokeNoise, this.threshold, this.translateXScale, this.translateZScale, this.baseBlock);
+		return new NoiseIcicleChunkGenerator(this.biomeSource, seed, this.cellNoise, this.translateXNoise, this.translateZNoise, this.refineXNoise, this.refineZNoise, this.pokeNoise, this.spaghettiPokeNoise, this.pokeThreshold, this.spaghettiPokeThreshold, this.translateXScale, this.translateZScale, this.baseBlock);
 	}
 
 	@Override
@@ -189,11 +197,15 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	}
 
 	public boolean isInNoise(int x, int y, int z, double n) {
-		return isInNoise(y, n, this.pokeNoise.GetNoise(x, y, z));
+		return isInNoise(x, y, z, n, this.pokeNoise.GetNoise(x, y, z));
 	}
 
-	public boolean isInNoise(int y, double n, double pn) {
-		return ((n > (((double) (y - 192) - (2.5D * 64.0D)) / (185.0D - (2.5D * 160.0D)))) && (n > (((double) (y - 80) - (160.0D)) / (185.0D - (160.0D))))) && (pn < this.threshold);
+	public boolean isInNoise(int x, int y, int z, double n, double pn) {
+		return isInNoise(y, n, pn, this.spaghettiPokeNoise.GetNoise(x, y, z));
+	}
+
+	public boolean isInNoise(int y, double n, double pn, double spn) {
+		return ((n > (((double) (y - 192) - (2.5D * 64.0D)) / (185.0D - (2.5D * 160.0D)))) && (n > (((double) (y - 80) - (160.0D)) / (185.0D - (160.0D))))) && (pn < this.pokeThreshold) && (spn > this.spaghettiPokeThreshold);
 	}
 
 	@Override

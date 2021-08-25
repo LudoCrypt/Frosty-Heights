@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.fabricmc.api.ModInitializer;
+import net.ludocrypt.frostyheights.data.FrostyHeightsArtificeData;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
 import net.ludocrypt.frostyheights.init.FrostyHeightsItems;
@@ -20,6 +21,7 @@ public class FrostyHeights implements ModInitializer {
 		FrostyHeightsItems.init();
 		FrostyHeightsBiomes.init();
 		FrostyHeightsWorld.init();
+		FrostyHeightsArtificeData.registerData();
 	}
 
 	public static Identifier id(String id) {

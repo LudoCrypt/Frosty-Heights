@@ -25,11 +25,11 @@ public class FrostyHeightsArtifice {
 			hiemarl(pack, FrostyHeightsBlocks.MOSSY_HIEMARL, get("hiemarl_top"), get("mossy_hiemarl_side"), get("mossy_hiemarl_top"), get("snowy_mossy_hiemarl_side"), get("snowy_mossy_hiemarl_top"), get("mossy_hiemarl_side_upside_down"));
 			cubeBottomTop(pack, FrostyHeightsBlocks.CLIFFSTONE, get("cliffstone_top"), get("cliffstone_side"), get("cliffstone_top"));
 			cubeBottomTop(pack, FrostyHeightsBlocks.DRAPERSTONE, get("draperstone_top"), get("draperstone_side"), get("draperstone_top"));
+			draperstoneRoots(pack, FrostyHeightsBlocks.DRAPERSTONE_ROOTS, get("draperstone_roots"), get("draperstone_roots"));
+			cubeAll(pack, FrostyHeightsBlocks.SOUL_ICE, get("soul_ice"));
 
 			pack.addTranslations(new Identifier("en_us"), (lang) -> {
-				Registry.ITEM.stream().filter((item) -> {
-					return Registry.ITEM.getId(item).getNamespace().equals("frostyheights");
-				}).forEach((item) -> runItemLang(lang, item));
+				Registry.ITEM.stream().filter((item) -> Registry.ITEM.getId(item).getNamespace().equals("frostyheights")).forEach((item) -> runItemLang(lang, item));
 				lang.entry("itemGroup.frostyheights.items", "Frosty Heights Items");
 			});
 		});
@@ -236,6 +236,28 @@ public class FrostyHeightsArtifice {
 		blockItemModel(pack, block);
 	}
 
+	private static void cross(ClientResourcePackBuilder pack, Block blockRegistry, String cross) {
+		String block = Registry.BLOCK.getId(blockRegistry).getPath();
+		blockState(pack, block);
+		pack.addBlockModel(FrostyHeights.id(block), (model) -> {
+			model.parent(new Identifier("block/cross"));
+			model.texture("cross", new Identifier(cross));
+		});
+		itemModel(pack, blockRegistry.asItem(), cross);
+	}
+
+	private static void draperstoneRoots(ClientResourcePackBuilder pack, Block blockRegistry, String inner, String outer) {
+		String block = Registry.BLOCK.getId(blockRegistry).getPath();
+		rotatedBlockState(pack, block, 180, 0);
+		pack.addBlockModel(FrostyHeights.id(block), (model) -> {
+			model.parent(FrostyHeights.id("block/edged_cross"));
+			model.texture("outer", new Identifier(inner));
+			model.texture("inner", new Identifier(outer));
+			model.texture("particle", new Identifier(outer));
+		});
+		itemModel(pack, blockRegistry.asItem(), inner);
+	}
+
 	private static void slimeBlock(ClientResourcePackBuilder pack, Block blockRegistry, String texture) {
 		String block = Registry.BLOCK.getId(blockRegistry).getPath();
 		blockState(pack, block);
@@ -251,6 +273,16 @@ public class FrostyHeightsArtifice {
 		pack.addBlockState(FrostyHeights.id(block), (state) -> {
 			state.variant("", (variant) -> {
 				variant.model(FrostyHeights.id("block/" + block));
+			});
+		});
+	}
+
+	private static void rotatedBlockState(ClientResourcePackBuilder pack, String block, int x, int y) {
+		pack.addBlockState(FrostyHeights.id(block), (state) -> {
+			state.variant("", (variant) -> {
+				variant.model(FrostyHeights.id("block/" + block));
+				variant.rotationX(x);
+				variant.rotationY(y);
 			});
 		});
 	}
