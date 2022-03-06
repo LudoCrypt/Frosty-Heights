@@ -6,6 +6,8 @@ import com.swordglowsblue.artifice.api.ArtificeResourcePack.ServerResourcePackBu
 import net.ludocrypt.frostyheights.FrostyHeights;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
 import net.minecraft.block.Block;
+import net.minecraft.tag.BlockTags;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -14,13 +16,13 @@ public class FrostyHeightsArtificeData {
 	public static void registerData() {
 		Artifice.registerDataPack(FrostyHeights.id("frostyheights"), (data) -> {
 			Registry.BLOCK.stream().filter((block) -> Registry.BLOCK.getId(block).getNamespace().equals("frostyheights")).forEach((block) -> runLootTables(data, block));
-			tag(data, "soul_speed_blocks", FrostyHeightsBlocks.SOUL_ICE);
-			hiemalTag(data, "base_stone_hiemal", FrostyHeightsBlocks.HIEMARL, FrostyHeightsBlocks.CLIFFSTONE, FrostyHeightsBlocks.DRAPERSTONE);
+			tag(data, BlockTags.SOUL_SPEED_BLOCKS, FrostyHeightsBlocks.SOUL_ICE);
+			tag(data, FrostyHeightsBlocks.HIEMAL_BASE_STONE, FrostyHeightsBlocks.HIEMARL, FrostyHeightsBlocks.CLIFFSTONE, FrostyHeightsBlocks.DRAPERSTONE);
 		});
 	}
 
-	private static void tag(ServerResourcePackBuilder data, String id, Block... blocks) {
-		data.addBlockTag(new Identifier(id), (tag) -> {
+	private static void tag(ServerResourcePackBuilder data, Tag.Identified<Block> id, Block... blocks) {
+		data.addBlockTag(id.getId(), (tag) -> {
 			tag.replace(false);
 			Identifier[] ids = new Identifier[blocks.length];
 			for (int i = 0; i < ids.length; i++) {
@@ -28,10 +30,6 @@ public class FrostyHeightsArtificeData {
 			}
 			tag.values(ids);
 		});
-	}
-
-	private static void hiemalTag(ServerResourcePackBuilder data, String id, Block... blocks) {
-		tag(data, FrostyHeights.id(id).toString(), blocks);
 	}
 
 	private static void runLootTables(ServerResourcePackBuilder data, Block block) {

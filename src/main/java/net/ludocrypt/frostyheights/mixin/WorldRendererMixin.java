@@ -13,7 +13,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ludocrypt.frostyheights.FrostyHeights;
-import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
+import net.ludocrypt.frostyheights.client.sky.TheHiemalSky;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
@@ -48,7 +48,7 @@ public class WorldRendererMixin {
 
 	@Inject(method = "renderSky", at = @At("HEAD"))
 	private void corners$renderSky(MatrixStack matrices, Matrix4f matrix4f, float f, Runnable runnable, CallbackInfo ci) {
-		if (this.world.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_WORLD_REGISTRY_KEY)) {
+		if (client.world.getSkyProperties().equals(TheHiemalSky.INSTANCE)) {
 			this.renderCubemap(matrices, THE_HIEMAL_SKY);
 		}
 	}

@@ -7,6 +7,8 @@ import net.minecraft.util.math.Vec3d;
 
 public class TheHiemalSky extends SkyProperties {
 
+	public static final TheHiemalSky INSTANCE = new TheHiemalSky();
+
 	public TheHiemalSky() {
 		super(Float.NaN, false, SkyType.NONE, true, false);
 	}

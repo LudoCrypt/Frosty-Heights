@@ -41,8 +41,8 @@ public class DraperstoneCorridorsSurfaceBuilder extends SurfaceBuilder<QuinarySu
 			if (chunkEncoding.chunkGenerator instanceof NoiseIcicleChunkGenerator chunkGenerator) {
 				for (int y = chunk.getBottomY(); y < chunk.getTopY(); y++) {
 					BlockPos pos = new BlockPos(x, y, z);
-					double n = chunkGenerator.getNoiseAt(x, y, z);
-					if (chunkGenerator.isInNoise(x, y, z, n)) {
+					double n = chunkGenerator.getNoiseAt(x, y, z, chunkGroup.getBottomY(), chunkGroup.getTopY());
+					if (chunkGenerator.isInNoise(x, y, z, chunkGroup.getBottomY(), chunkGroup.getTopY())) {
 						if (((n > 1.15D && n < 1.3D) || (n > 0.85D && n < 1.0D))) {
 							chunk.setBlockState(pos, surfaceConfig.getCakeLayer(), false);
 						}

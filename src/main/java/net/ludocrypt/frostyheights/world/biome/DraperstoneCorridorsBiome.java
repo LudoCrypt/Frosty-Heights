@@ -6,6 +6,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.gen.GenerationStep.Feature;
 
 public class DraperstoneCorridorsBiome {
 
@@ -42,6 +43,7 @@ public class DraperstoneCorridorsBiome {
 
 		GenerationSettings.Builder generationSettingsBuilder = new GenerationSettings.Builder();
 		generationSettingsBuilder.surfaceBuilder(FrostyHeightsWorld.DRAPERSTONE_CORRIDORS_CONFIGURED_SURFACE_BUILDER);
+		generationSettingsBuilder.feature(Feature.LOCAL_MODIFICATIONS, FrostyHeightsWorld.SOUL_ICE_BLOB_CONFIGURED_FEATURE);
 		builder.generationSettings(generationSettingsBuilder.build());
 
 		return builder.build();

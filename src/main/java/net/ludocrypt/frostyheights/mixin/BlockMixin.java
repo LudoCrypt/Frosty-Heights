@@ -18,10 +18,8 @@ public class BlockMixin {
 	@Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
 	private static void frostyheights$shouldDrawSide(BlockState state, BlockView world, BlockPos pos, Direction side, BlockPos blockPos, CallbackInfoReturnable<Boolean> ci) {
 		BlockState blockState = world.getBlockState(blockPos);
-		if (state.isOf(FrostyHeightsBlocks.DRAPERSTONE_ROOTS) && blockState.isOf(FrostyHeightsBlocks.DRAPERSTONE_ROOTS)) {
-			ci.setReturnValue(false);
-		} else if (blockState.isOf(FrostyHeightsBlocks.DRAPERSTONE_ROOTS)) {
-			ci.setReturnValue(true);
+		if (state.isOf(FrostyHeightsBlocks.DRAPERSTONE_ROOTS)) {
+			ci.setReturnValue((blockState.isOf(FrostyHeightsBlocks.DRAPERSTONE_ROOTS)) ? false : !blockState.isSideSolidFullSquare(world, blockPos, side.getOpposite()));
 		}
 	}
 

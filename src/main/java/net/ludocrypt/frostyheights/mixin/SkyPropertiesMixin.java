@@ -21,7 +21,7 @@ public class SkyPropertiesMixin {
 	private static Object2ObjectMap<Identifier, SkyProperties> BY_IDENTIFIER;
 
 	static {
-		BY_IDENTIFIER.put(FrostyHeightsWorld.THE_HIEMAL, new TheHiemalSky());
+		BY_IDENTIFIER.put(FrostyHeightsWorld.THE_HIEMAL, TheHiemalSky.INSTANCE);
 	}
 
 }

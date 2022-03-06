@@ -7,6 +7,8 @@ import net.minecraft.client.MinecraftClient;
 
 @Mixin(MinecraftClient.class)
 public interface MinecraftClientAccessor {
+
 	@Accessor("pausedTickDelta")
 	float getPausedTickDelta();
+
 }

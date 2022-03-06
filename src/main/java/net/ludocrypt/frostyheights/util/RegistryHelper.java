@@ -1,13 +1,19 @@
 package net.ludocrypt.frostyheights.util;
 
+import com.mojang.datafixers.types.Type;
 import com.mojang.serialization.Codec;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.ludocrypt.frostyheights.FrostyHeights;
 import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.util.Util;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
@@ -26,6 +32,11 @@ public class RegistryHelper {
 
 	public static <T extends Block> T get(String id, T block) {
 		return Registry.register(Registry.BLOCK, FrostyHeights.id(id), block);
+	}
+
+	public static <T extends BlockEntity> BlockEntityType<T> get(String id, FabricBlockEntityTypeBuilder<T> builder) {
+		Type<?> type = Util.getChoiceType(TypeReferences.BLOCK_ENTITY, id);
+		return Registry.register(Registry.BLOCK_ENTITY_TYPE, FrostyHeights.id(id), builder.build(type));
 	}
 
 	public static <T extends Block> T get(String id, T block, ItemGroup group) {

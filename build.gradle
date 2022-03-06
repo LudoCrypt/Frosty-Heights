@@ -10,6 +10,10 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+loom {
+	accessWidenerPath = file("src/main/resources/frostyheights.accesswidener")
+}
+
 repositories {
 	maven { url = 'https://maven.terraformersmc.com/' }
 	jcenter()
@@ -23,6 +27,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
+	includeMod "com.terraformersmc.terraform-api:terraform-shapes-api-v1:${project.shapes_version}"
 	includeMod "com.lettuce.fudge:artifice:${project.artifice_version}"
 }
 

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
+import net.ludocrypt.frostyheights.client.sky.TheHiemalSky;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.HeightLimitView;
@@ -19,7 +19,7 @@ public class ClientWorldPropertiesMixin {
 	@Inject(method = "getSkyDarknessHeight", at = @At("HEAD"), cancellable = true)
 	private void corners$getSkyDarknessHeight(HeightLimitView world, CallbackInfoReturnable<Double> ci) {
 		MinecraftClient client = MinecraftClient.getInstance();
-		if (client.world.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_WORLD_REGISTRY_KEY)) {
+		if (client.world.getSkyProperties().equals(TheHiemalSky.INSTANCE)) {
 			ci.setReturnValue(-64.0D);
 		}
 	}
@@ -27,7 +27,7 @@ public class ClientWorldPropertiesMixin {
 	@Inject(method = "getHorizonShadingRatio", at = @At("HEAD"), cancellable = true)
 	private void corners$getHorizonShadingRatio(CallbackInfoReturnable<Double> ci) {
 		MinecraftClient client = MinecraftClient.getInstance();
-		if (client.world.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_WORLD_REGISTRY_KEY)) {
+		if (client.world.getSkyProperties().equals(TheHiemalSky.INSTANCE)) {
 			ci.setReturnValue(0.05D);
 		}
 	}

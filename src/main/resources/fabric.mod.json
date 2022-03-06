@@ -30,6 +30,7 @@
 			"net.ludocrypt.frostyheights.client.FrostyHeightsClient"
 		]
 	},
+	"accessWidener": "frostyheights.accesswidener",
 	"mixins": [
 		"frostyheights.mixins.json"
 	],

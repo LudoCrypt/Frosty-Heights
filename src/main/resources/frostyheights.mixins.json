@@ -4,16 +4,20 @@
 	"package": "net.ludocrypt.frostyheights.mixin",
 	"compatibilityLevel": "JAVA_16",
 	"mixins": [
+		"BlockMixin",
 		"DimensionTypeMixin",
+		"MoreOptionsDialogAccessor",
 		"MultiNoiseBiomeSourceAccessor",
-		"BlockMixin"
+		"GeneratorTypeMixin",
+		"GeneratorTypeAccessor",
+		"DecoratorContextMixin"
 	],
 	"client": [
-		"ClientWorldPropertiesMixin",
-		"SkyPropertiesMixin",
-		"WorldRendererMixin",
 		"BackgroundRendererMixin",
-		"MinecraftClientAccessor"
+		"ClientWorldPropertiesMixin",
+		"MinecraftClientAccessor",
+		"SkyPropertiesMixin",
+		"WorldRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

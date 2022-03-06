@@ -11,7 +11,9 @@ import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.biome.Biome;
 
 @SuppressWarnings("unused")
 public class FrostyHeightsArtifice {
@@ -27,10 +29,13 @@ public class FrostyHeightsArtifice {
 			cubeBottomTop(pack, FrostyHeightsBlocks.DRAPERSTONE, get("draperstone_top"), get("draperstone_side"), get("draperstone_top"));
 			draperstoneRoots(pack, FrostyHeightsBlocks.DRAPERSTONE_ROOTS, get("draperstone_roots"), get("draperstone_roots"));
 			cubeAll(pack, FrostyHeightsBlocks.SOUL_ICE, get("soul_ice"));
+			cubeAll(pack, FrostyHeightsBlocks.CONDENSED_MIST, get("draperstone_roots"));
 
 			pack.addTranslations(new Identifier("en_us"), (lang) -> {
 				Registry.ITEM.stream().filter((item) -> Registry.ITEM.getId(item).getNamespace().equals("frostyheights")).forEach((item) -> runItemLang(lang, item));
+				BuiltinRegistries.BIOME.stream().filter((biome) -> BuiltinRegistries.BIOME.getId(biome).getNamespace().equals("frostyheights")).forEach((biome) -> runBiomeLang(lang, biome));
 				lang.entry("itemGroup.frostyheights.items", "Frosty Heights Items");
+				lang.entry("generator.icicles", "Icicles");
 			});
 		});
 	}
@@ -219,6 +224,15 @@ public class FrostyHeightsArtifice {
 			model.parent(new Identifier("block/cube_all"));
 			model.texture("all", new Identifier(texture));
 			model.texture("particle", new Identifier(texture));
+		});
+		blockItemModel(pack, block);
+	}
+
+	private static void air(ClientResourcePackBuilder pack, Block blockRegistry, String particle) {
+		String block = Registry.BLOCK.getId(blockRegistry).getPath();
+		blockState(pack, block);
+		pack.addBlockModel(FrostyHeights.id(block), (model) -> {
+			model.texture("particle", new Identifier(particle));
 		});
 		blockItemModel(pack, block);
 	}
@@ -616,6 +630,11 @@ public class FrostyHeightsArtifice {
 	private static void runItemLang(TranslationBuilder lang, Item itemRegistry) {
 		String item = Registry.ITEM.getId(itemRegistry).getPath();
 		lang.entry(itemRegistry.getTranslationKey(), runString(item));
+	}
+
+	private static void runBiomeLang(TranslationBuilder lang, Biome biomeRegistry) {
+		Identifier biome = BuiltinRegistries.BIOME.getId(biomeRegistry);
+		lang.entry("biome." + biome.getNamespace() + "." + biome.getPath(), runString(biome.getPath()));
 	}
 
 	private static String runString(String name) {
