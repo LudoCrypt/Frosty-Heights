@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"cracked=true": {
+			"model": "frostyheights:block/phantom_ice_cracked"
+		},
+		"cracked=false": {
+			"model": "frostyheights:block/phantom_ice"
+		}
+	}
+}

@@ -1,0 +1,53 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "net.ludocrypt",
+		"id": "frostyheights",
+		"version": "${version}",
+		"metadata": {
+			"name": "Frosty Heights",
+			"description": "A bone-chilling realm to explore, featuring many friends and foes.",
+			"contributors": {
+				"Shai": "Author, Artist",
+				"LudoCrypt": "Co-Author, Developer, Musician",
+				"EB MARIO": "Animator, 3D Mob Designer",
+				"Uraneptus": "Logo Designer"
+			},
+			"contact": {
+				"homepage": "https://www.curseforge.com/minecraft/mc-mods/frosty-heights",
+				"issues": "https://github.com/LudoCrypt/Frosty-Heights/issues",
+				"sources": "https://github.com/LudoCrypt/Frosty-Heights"
+			},
+			"icon": "assets/frostyheights/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"entrypoints": {
+			"init": "net.ludocrypt.frostyheights.FrostyHeights",
+			"client_init": "net.ludocrypt.frostyheights.client.FrostyHeightsClient",
+			"limlib:pre_registration": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld"
+		},
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.17.0-"
+			},
+			{
+				"id": "quilted_fabric_api",
+				"versions": ">=4.0.0-"
+			},
+			{
+				"id": "minecraft",
+				"versions": ">=1.19.2"
+			}
+		]
+	},
+	"mixin": "frostyheights.mixins.json",
+	"modmenu": {
+		"links": {
+			"credits.frostyheights.ludocrypt.youtube": "https://www.youtube.com/c/LudoCrypt/",
+			"credits.frostyheights.ludocrypt.bandcamp": "https://ludocrypt.bandcamp.com/",
+			"credits.frostyheights.shai.instagram": "https://www.instagram.com/shaithelamb/",
+			"credits.frostyheights.shai.twitter": "https://twitter.com/shaithelamb"
+		}
+	}
+}

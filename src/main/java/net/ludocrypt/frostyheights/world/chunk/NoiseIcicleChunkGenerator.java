@@ -1,127 +1,140 @@
 package net.ludocrypt.frostyheights.world.chunk;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.Lifecycle;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
-import net.ludocrypt.frostyheights.util.ChunkEncodedChunkGenerator;
-import net.ludocrypt.frostyheights.util.FastNoiseLite;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.CellularDistanceFunction;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.CellularReturnType;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.DomainWarpType;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.FractalType;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.NoiseType;
-import net.ludocrypt.frostyheights.util.FastNoiseLite.RotationType3D;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
+import net.ludocrypt.limlib.world.chunk.LiminalChunkGenerator;
+import net.minecraft.server.world.ChunkHolder.Unloaded;
+import net.minecraft.server.world.ServerLightingProvider;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
-import net.minecraft.world.Heightmap;
 import net.minecraft.world.Heightmap.Type;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.biome.source.FixedBiomeSource;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.BlockSource;
-import net.minecraft.world.gen.ChunkRandom;
-import net.minecraft.world.gen.DefaultBlockSource;
-import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.world.gen.RandomState;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.chunk.StructuresConfig;
-import net.minecraft.world.gen.chunk.VerticalBlockSample;
+import net.minecraft.world.gen.structure.StructureSet;
 
-public class NoiseIcicleChunkGenerator extends ChunkGenerator {
+public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 
 	public static final Codec<NoiseIcicleChunkGenerator> CODEC = RecordCodecBuilder.create((instance) -> {
 		return instance.group(BiomeSource.CODEC.fieldOf("biome_source").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.biomeSource;
-		}), Codec.LONG.fieldOf("seed").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.worldSeed;
-		}), FastNoiseLite.CODEC.fieldOf("cellNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.cellNoise;
-		}), FastNoiseLite.CODEC.fieldOf("translateXNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.translateXNoise;
-		}), FastNoiseLite.CODEC.fieldOf("translateZNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.translateZNoise;
-		}), FastNoiseLite.CODEC.fieldOf("refineXNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.refineXNoise;
-		}), FastNoiseLite.CODEC.fieldOf("refineZNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.refineZNoise;
-		}), FastNoiseLite.CODEC.fieldOf("pokeNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.pokeNoise;
-		}), FastNoiseLite.CODEC.fieldOf("spaghettiPokeNoise").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.spaghettiPokeNoise;
-		}), Codec.DOUBLE.fieldOf("pokeThreshold").stable().forGetter((chunkGenerator) -> {
+		}), NoiseIcicleSettings.CODEC.fieldOf("noise_settings").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.noiseSettings;
+		}), Codec.DOUBLE.fieldOf("poke_threshold").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.pokeThreshold;
-		}), Codec.DOUBLE.fieldOf("spaghettiPokeThreshold").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("spaghetti_poke_threshold").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.spaghettiPokeThreshold;
-		}), Codec.DOUBLE.fieldOf("translateXScale").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("translate_x_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.translateXScale;
-		}), Codec.DOUBLE.fieldOf("translateZScale").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("translate_s_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.translateZScale;
-		}), Codec.DOUBLE.fieldOf("totalHeightScale").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("total_height_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.totalHeightScale;
-		}), Codec.DOUBLE.fieldOf("totalHeightShift").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("total_height_shift").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.totalHeightShift;
-		}), BlockState.CODEC.fieldOf("baseBlock").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.baseBlock;
+		}), Codec.DOUBLE.fieldOf("icicle_height").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.icicleHeight;
+		}), Codec.DOUBLE.fieldOf("icicle_scale").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.icicleScale;
+		}), Codec.DOUBLE.fieldOf("wastelands_height").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.wastelandsHeight;
+		}), Codec.DOUBLE.fieldOf("wastelands_scale").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.wastelandsScale;
 		})).apply(instance, instance.stable(NoiseIcicleChunkGenerator::new));
 	});
 
 	public final BiomeSource biomeSource;
-	public final long worldSeed;
-	public final FastNoiseLite cellNoise;
-	public final FastNoiseLite translateXNoise;
-	public final FastNoiseLite translateZNoise;
-	public final FastNoiseLite refineXNoise;
-	public final FastNoiseLite refineZNoise;
-	public final FastNoiseLite pokeNoise;
-	public final FastNoiseLite spaghettiPokeNoise;
+
+	public final NoiseIcicleSettings noiseSettings;
+
+	/* How thick the caves are */
 	public final double pokeThreshold;
 	public final double spaghettiPokeThreshold;
+
+	/* How wobbly the icicles are */
 	public final double translateXScale;
 	public final double translateZScale;
+
+	/* Scale Icicle sizes */
 	public final double totalHeightScale;
+
+	/* Shift Icicles up/down */
 	public final double totalHeightShift;
-	public final BlockState baseBlock;
 
-	public static NoiseIcicleChunkGenerator getHiemal(Registry<Biome> biomeRegistry, long seed) {
-		return getHiemalDefaultFastNoise(FrostyHeightsBiomes.THE_HIEMAL_BIOME_SOURCE_PRESET.getBiomeSource(biomeRegistry, seed), 0.125D, -0.8D, 5.0D, 5.0D, 384.0D, 0.0D, FrostyHeightsBlocks.HIEMARL.getDefaultState(), biomeRegistry, seed);
+	/* Icicles (bottom of the hiemal) */
+	public final double icicleHeight;
+	public final double icicleScale;
+
+	/* Wastelands (top of the hiemal) */
+	public final double wastelandsHeight;
+	public final double wastelandsScale;
+
+	public static NoiseIcicleChunkGenerator getHiemal() {
+		return getHiemalDefaultFastNoise(new FixedBiomeSource(BuiltinRegistries.BIOME.m_pselvvxn(FrostyHeightsBiomes.HIEMAL_BARRENS)), 0.125D, -0.8D, 5.0D, 5.0D, 384.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D);
 	}
 
-	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(BiomeSource source, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, final double totalHeightShift, BlockState baseBlock, Registry<Biome> biomeRegistry, long seed) {
-		return new NoiseIcicleChunkGenerator(source, seed, FastNoiseLite.create(true, seed, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D), FastNoiseLite.create(false, seed ^ 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 3, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D), FastNoiseLite.create(false, seed ^ 4, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(false, seed ^ 5, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D), FastNoiseLite.create(true, seed ^ 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D), FastNoiseLite.create(false, seed ^ 7, NoiseType.Cellular, RotationType3D.ImproveXYPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D), pokeThreshold, spaghettiPokeThreshold, translateXScale, translateZScale, totalHeightScale, totalHeightShift, baseBlock);
+	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(BiomeSource source, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
+		return new NoiseIcicleChunkGenerator(source, new NoiseIcicleSettings(
+				/* Cell Noise */
+				FastNoiseSampler.create(true, 1, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D),
+				/* Translate X Noise */
+				FastNoiseSampler.create(false, 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
+				/* Translate Z Noise */
+				FastNoiseSampler.create(false, 3, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
+				/* Refine X Noise */
+				FastNoiseSampler.create(false, 4, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
+				/* Refine Z Noise */
+				FastNoiseSampler.create(false, 5, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
+				/* Poke Noise */
+				FastNoiseSampler.create(true, 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D),
+				/* Spaghetti Poke Noise */
+				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXYPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)),
+				/* Thresholds */
+				pokeThreshold, spaghettiPokeThreshold, translateXScale, translateZScale, totalHeightScale, totalHeightShift, icicleHeight, icicleScale, wastelandsHeight, wastelandsScale);
 	}
 
-	public static NoiseIcicleChunkGenerator getOverworldHiemal(BiomeSource source, Registry<Biome> biomeRegistry, long seed) {
-		return getHiemalDefaultFastNoise(source, 0.125D, -0.8D, 5.0D, 5.0D, 384.0D, 0.0D, Blocks.STONE.getDefaultState(), biomeRegistry, seed);
-	}
-
-	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, long worldSeed, FastNoiseLite cellNoise, FastNoiseLite translateXNoise, FastNoiseLite translateZNoise, FastNoiseLite refineXNoise, FastNoiseLite refineZNoise, FastNoiseLite pokeNoise, FastNoiseLite spaghettiPokeNoise, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, BlockState baseBlock) {
-		super(biomeSource, biomeSource, new StructuresConfig(false), worldSeed);
+	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, NoiseIcicleSettings noiseSettings, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
+		super(new SimpleRegistry<StructureSet>(Registry.STRUCTURE_SET_WORLDGEN, Lifecycle.stable(), null), Optional.empty(), biomeSource);
 		this.biomeSource = biomeSource;
-		this.worldSeed = worldSeed;
-		this.cellNoise = cellNoise;
-		this.translateXNoise = translateXNoise;
-		this.translateZNoise = translateZNoise;
-		this.refineXNoise = refineXNoise;
-		this.refineZNoise = refineZNoise;
-		this.pokeNoise = pokeNoise;
-		this.spaghettiPokeNoise = spaghettiPokeNoise;
+		this.noiseSettings = noiseSettings;
 		this.pokeThreshold = pokeThreshold;
 		this.spaghettiPokeThreshold = spaghettiPokeThreshold;
 		this.translateXScale = translateXScale;
 		this.translateZScale = translateZScale;
 		this.totalHeightScale = totalHeightScale;
 		this.totalHeightShift = totalHeightShift;
-		this.baseBlock = baseBlock;
+		this.icicleHeight = icicleHeight;
+		this.icicleScale = icicleScale;
+		this.wastelandsHeight = wastelandsHeight;
+		this.wastelandsScale = wastelandsScale;
 	}
 
 	@Override
@@ -130,28 +143,7 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public ChunkGenerator withSeed(long seed) {
-		return new NoiseIcicleChunkGenerator(this.biomeSource, seed, this.cellNoise, this.translateXNoise, this.translateZNoise, this.refineXNoise, this.refineZNoise, this.pokeNoise, this.spaghettiPokeNoise, this.pokeThreshold, this.spaghettiPokeThreshold, this.translateXScale, this.translateZScale, this.totalHeightScale, this.totalHeightShift, this.baseBlock);
-	}
-
-	@Override
-	public void buildSurface(ChunkRegion region, Chunk chunk) {
-		ChunkPos chunkPos = chunk.getPos();
-		ChunkRandom chunkRandom = new ChunkRandom();
-		chunkRandom.setTerrainSeed(chunkPos.x, chunkPos.z);
-		int chunkX = chunkPos.getStartX();
-		int chunkZ = chunkPos.getStartZ();
-
-		for (int x = chunkX; x < chunkX + 16; x++) {
-			for (int z = chunkZ; z < chunkZ + 16; z++) {
-				int y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE_WG, x - chunkX, z - chunkZ) + 1;
-				region.getBiome(new BlockPos(x, y, z)).buildSurface(chunkRandom, new ChunkEncodedChunkGenerator(chunk, this), x, z, y, this.getNoiseAt(x, this.getSeaLevel(), z, chunk.getBottomY(), chunk.getTopY()), this.baseBlock, this.baseBlock, this.getSeaLevel(), chunk.getBottomY(), region.getSeed());
-			}
-		}
-	}
-
-	@Override
-	public CompletableFuture<Chunk> populateNoise(Executor executor, StructureAccessor accessor, Chunk chunk) {
+	public CompletableFuture<Chunk> populateNoise(ChunkRegion chunkRegion, ChunkStatus targetStatus, Executor executor, ServerWorld world, ChunkGenerator generator, StructureTemplateManager structureTemplateManager, ServerLightingProvider lightingProvider, Function<Chunk, CompletableFuture<Either<Chunk, Unloaded>>> fullChunkConverter, List<Chunk> chunks, Chunk chunk, boolean regenerate) {
 		return CompletableFuture.supplyAsync(() -> {
 			for (int ix = 0; ix < 16; ix++) {
 				int x = (chunk.getPos().getStartX() + ix);
@@ -159,7 +151,7 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 					int z = (chunk.getPos().getStartZ() + iz);
 					for (int iy = 0; iy < chunk.getHeight(); iy++) {
 						int y = chunk.getBottomY() + iy;
-						sampleHeight(chunk, x, y, z, () -> chunk.setBlockState(new BlockPos(x, y, z), this.baseBlock, false));
+						sampleHeight(chunk, x, y, z, Long.hashCode(chunkRegion.getSeed()), () -> chunk.setBlockState(new BlockPos(x, y, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false));
 					}
 				}
 			}
@@ -168,10 +160,10 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public int getHeight(int x, int z, Type heightmap, HeightLimitView world) {
+	public int getHeight(int x, int z, Type heightmap, HeightLimitView world, RandomState randomState) {
 		int height = world.getBottomY();
 		for (int y = world.getTopY(); y > world.getBottomY(); y--) {
-			int h = sampleHeight(world, x, y, z);
+			int h = sampleHeight(world, x, y, z, Long.hashCode(randomState.getLegacyWorldSeed()));
 			if (h > height) {
 				return h;
 			}
@@ -179,19 +171,19 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 		return height;
 	}
 
-	private int sampleHeight(HeightLimitView world, int x, int y, int z) {
-		return sampleHeight(world, x, y, z, () -> {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed) {
+		return sampleHeight(world, x, y, z, worldSeed, () -> {
 		});
 	}
 
-	private int sampleHeight(HeightLimitView world, int x, int y, int z, Runnable function) {
-		return sampleHeight(world, x, y, z, function, () -> {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed, Runnable function) {
+		return sampleHeight(world, x, y, z, worldSeed, function, () -> {
 		});
 	}
 
-	private int sampleHeight(HeightLimitView world, int x, int y, int z, Runnable function, Runnable function2) {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed, Runnable function, Runnable function2) {
 		int topBlock = world.getBottomY();
-		if (isInNoise(x, y, z, world.getBottomY(), world.getTopY())) {
+		if (isInNoise(x, y, z, world.getBottomY(), world.getTopY(), worldSeed)) {
 			if (y > topBlock) {
 				topBlock = y;
 			}
@@ -202,28 +194,28 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 		return topBlock;
 	}
 
-	public double getNoiseAt(int x, int iy, int z, double bottom, double top) {
+	public double getNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.cellNoise.GetNoise((x - (this.translateXNoise.GetNoise(x, y, z) * Math.pow(this.translateXScale, 2))) - (this.refineXNoise.GetNoise((double) x * Math.pow(this.translateXScale, 1.5D), (double) y * Math.pow(this.translateXScale, 1.5D), (double) z * Math.pow(this.translateXScale, 1.5D)) * this.translateZScale), (z - (this.translateZNoise.GetNoise(x, y, z) * Math.pow(this.translateZScale, 2))) - (this.refineXNoise.GetNoise((double) x * Math.pow(this.translateZScale, 1.5D), (double) y * Math.pow(this.translateZScale, 1.5D), (double) z * Math.pow(this.translateZScale, 1.5D)) * this.translateZScale));
+		return this.noiseSettings.cellNoise.GetNoise((x - (this.noiseSettings.translateXNoise.GetNoise(x, y, z, worldSeed) * Math.pow(this.translateXScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateXScale, 1.5D), (double) y * Math.pow(this.translateXScale, 1.5D), (double) z * Math.pow(this.translateXScale, 1.5D), worldSeed) * this.translateZScale), (z - (this.noiseSettings.translateZNoise.GetNoise(x, y, z, worldSeed) * Math.pow(this.translateZScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateZScale, 1.5D), (double) y * Math.pow(this.translateZScale, 1.5D), (double) z * Math.pow(this.translateZScale, 1.5D), worldSeed) * this.translateZScale), worldSeed);
 	}
 
-	public double getPokeNoiseAt(int x, int iy, int z, double bottom, double top) {
+	public double getPokeNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.pokeNoise.GetNoise(x, y, z);
+		return this.noiseSettings.pokeNoise.GetNoise(x, y, z, worldSeed);
 	}
 
-	public double getSpaghettiPokeNoiseAt(int x, int iy, int z, double bottom, double top) {
+	public double getSpaghettiPokeNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.spaghettiPokeNoise.GetNoise(x, y, z);
+		return this.noiseSettings.spaghettiPokeNoise.GetNoise(x, y, z, worldSeed);
 	}
 
-	public boolean isInNoise(int x, int y, int z, double bottom, double top) {
-		return isInNoise(y, getNoiseAt(x, y, z, bottom, top), getPokeNoiseAt(x, y, z, bottom, top), getSpaghettiPokeNoiseAt(x, y, z, bottom, top), bottom, top);
+	public boolean isInNoise(int x, int y, int z, double bottom, double top, int worldSeed) {
+		return isInNoise(y, getNoiseAt(x, y, z, bottom, top, worldSeed), getPokeNoiseAt(x, y, z, bottom, top, worldSeed), getSpaghettiPokeNoiseAt(x, y, z, bottom, top, worldSeed), bottom, top);
 	}
 
 	public boolean isInNoise(int iy, double n, double pn, double spn, double bottom, double top) {
 		double y = calculateScaledY(iy, bottom, top);
-		return ((n > (((y - 192.0D) - (2.5D * 64.0D)) / (185.0D - (2.5D * 160.0D)))) && (n > (((y - 80.0D) - (160.0D)) / (185.0D - (160.0D))))) && (pn < this.pokeThreshold) && (spn > this.spaghettiPokeThreshold);
+		return (n > -((y - icicleScale - icicleHeight) / (icicleScale)) && n > ((y + wastelandsScale - wastelandsHeight) / (wastelandsScale))) && (pn < this.pokeThreshold) && (spn > this.spaghettiPokeThreshold);
 	}
 
 	public double calculateScaledY(double iy, double bottom, double top) {
@@ -236,29 +228,62 @@ public class NoiseIcicleChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world) {
-		BlockState[] blockSample = new BlockState[world.getHeight()];
-		for (int heightY = 0; heightY < world.getHeight(); heightY++) {
-			int y = heightY - world.getBottomY();
-			int columnY = heightY;
-			sampleHeight(world, x, y, z, () -> blockSample[columnY] = this.baseBlock, () -> blockSample[columnY] = Blocks.AIR.getDefaultState());
-		}
-		return new VerticalBlockSample(world.getBottomY(), blockSample);
-	}
-
-	@Override
-	public int getSeaLevel() {
-		return 251;
-	}
-
-	@Override
 	public int getWorldHeight() {
-		return 384;
+		return 320;
 	}
 
 	@Override
-	public BlockSource getBlockSource() {
-		return new DefaultBlockSource(baseBlock);
+	public int getChunkDistance() {
+		return 2;
+	}
+
+	public static class NoiseIcicleSettings {
+
+		public static final Codec<NoiseIcicleSettings> CODEC = RecordCodecBuilder.create((instance) -> {
+			return instance.group(FastNoiseSampler.CODEC.fieldOf("cellNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.cellNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("translateXNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.translateXNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("translateZNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.translateZNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("refineXNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.refineXNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("refineZNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.refineZNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("pokeNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.pokeNoise;
+			}), FastNoiseSampler.CODEC.fieldOf("spaghettiPokeNoise").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.spaghettiPokeNoise;
+			})).apply(instance, instance.stable(NoiseIcicleSettings::new));
+		});
+
+		/* Icicle Noisemap (Determines where Icicles generate) */
+		public final FastNoiseSampler cellNoise;
+
+		/* Icicle Wavyness Noisemap (Determines how the Icicles warp) */
+		public final FastNoiseSampler translateXNoise;
+		public final FastNoiseSampler translateZNoise;
+
+		/* Icicle Jagged Noisemap (Determines how jagged the Icicles are) */
+		public final FastNoiseSampler refineXNoise;
+		public final FastNoiseSampler refineZNoise;
+
+		/* Icicle Cave Noisemap (Determines the caves that generate) */
+		public final FastNoiseSampler pokeNoise;
+
+		/* Icicle Bubbles Noisemap (Determines the crevices that form bulbs) */
+		public final FastNoiseSampler spaghettiPokeNoise;
+
+		public NoiseIcicleSettings(FastNoiseSampler cellNoise, FastNoiseSampler translateXNoise, FastNoiseSampler translateZNoise, FastNoiseSampler refineXNoise, FastNoiseSampler refineZNoise, FastNoiseSampler pokeNoise, FastNoiseSampler spaghettiPokeNoise) {
+			this.cellNoise = cellNoise;
+			this.translateXNoise = translateXNoise;
+			this.translateZNoise = translateZNoise;
+			this.refineXNoise = refineXNoise;
+			this.refineZNoise = refineZNoise;
+			this.pokeNoise = pokeNoise;
+			this.spaghettiPokeNoise = spaghettiPokeNoise;
+		}
+
 	}
 
 }

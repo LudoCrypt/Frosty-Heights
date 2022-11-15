@@ -1,0 +1,16 @@
+{
+	"variants": {
+		"axis=x": {
+			"model": "frostyheights:block/cliffstone",
+			"x": 90,
+			"y": 90
+		},
+		"axis=y": {
+			"model": "frostyheights:block/cliffstone"
+		},
+		"axis=z": {
+			"model": "frostyheights:block/cliffstone",
+			"x": 90
+		}
+	}
+}

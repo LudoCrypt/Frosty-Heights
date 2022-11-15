@@ -1,0 +1,83 @@
+{
+	"biome.loop.hiemal_barrens": {
+		"sounds": [
+			{
+				"name": "frostyheights:biome/loop/hiemal_barrens",
+				"volume": 0.3,
+				"stream": true
+			}
+		]
+	},
+	"music.hiemal_barrens": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/blizzard1",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/blizzard2",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/blizzard3",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/blizzard4",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/blizzard5",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/clear1",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/clear2",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/clear3",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/snow1",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/snow2",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/snow3",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/snow4",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/snow5",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/windy1",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/windy2",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/windy3",
+				"stream": true
+			},
+			{
+				"name": "frostyheights:music/windy4",
+				"stream": true
+			}
+		]
+	}
+}

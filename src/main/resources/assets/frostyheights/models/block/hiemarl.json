@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:block/cube_column",
+	"textures": {
+		"end": "frostyheights:block/hiemarl_top",
+		"side": "frostyheights:block/hiemarl"
+	}
+}

@@ -1,40 +1,31 @@
 package net.ludocrypt.frostyheights.init;
 
-import static net.ludocrypt.frostyheights.util.RegistryHelper.get;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 
 import net.ludocrypt.frostyheights.FrostyHeights;
-import net.ludocrypt.frostyheights.mixin.MultiNoiseBiomeSourceAccessor;
-import net.ludocrypt.frostyheights.world.biome.DraperstoneCorridorsBiome;
-import net.ludocrypt.frostyheights.world.biome.MossyIcemarshBiome;
+import net.ludocrypt.frostyheights.world.biome.HiemalBarrensBiome;
+import net.ludocrypt.frostyheights.world.chunk.NoiseIcicleChunkGenerator;
+import net.minecraft.util.registry.BuiltinRegistries;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class FrostyHeightsBiomes {
 
-	private static final Map<RegistryKey<Biome>, Biome.MixedNoisePoint> NOISE_POINTS = new HashMap<>();
-
-	public static final RegistryKey<Biome> MOSSY_ICEMARSH = get("mossy_icemarsh", MossyIcemarshBiome.get());
-	public static final RegistryKey<Biome> DRAPERSTONE_CORRIDORS = get("draperstone_corridors", DraperstoneCorridorsBiome.get());
-
-	public static final MultiNoiseBiomeSource.Preset THE_HIEMAL_BIOME_SOURCE_PRESET = new MultiNoiseBiomeSource.Preset(FrostyHeights.id("the_hiemal"), (preset, biomeRegistry, seed) -> {
-		List<Pair<Biome.MixedNoisePoint, Supplier<Biome>>> biomes = new ArrayList<>();
-		NOISE_POINTS.forEach((biomeKey, noisePoint) -> biomes.add(Pair.of(noisePoint, () -> biomeRegistry.getOrThrow(biomeKey))));
-		return MultiNoiseBiomeSourceAccessor.createMultiNoiseBiomeSource(seed, biomes, Optional.of(Pair.of(biomeRegistry, preset)));
-	});
+	public static final RegistryKey<Biome> HIEMAL_BARRENS = get(FrostyHeightsWorld.THE_HIEMAL, HiemalBarrensBiome.create());
 
 	public static void init() {
-		NOISE_POINTS.put(MOSSY_ICEMARSH, new Biome.MixedNoisePoint(0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-		NOISE_POINTS.put(DRAPERSTONE_CORRIDORS, new Biome.MixedNoisePoint(0.15F, 0.15F, 0.0F, -0.35F, 0.0F));
+		get("yearning_canal_chunk_generator", NoiseIcicleChunkGenerator.CODEC);
+	}
+
+	public static RegistryKey<Biome> get(String id, Biome biome) {
+		Registry.register(BuiltinRegistries.BIOME, FrostyHeights.id(id), biome);
+		return RegistryKey.of(Registry.BIOME_KEY, FrostyHeights.id(id));
+	}
+
+	public static <C extends ChunkGenerator, D extends Codec<C>> D get(String id, D chunkGeneratorCodec) {
+		return Registry.register(Registry.CHUNK_GENERATOR, FrostyHeights.id(id), chunkGeneratorCodec);
 	}
 
 }

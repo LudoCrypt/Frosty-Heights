@@ -1,27 +1,23 @@
 package net.ludocrypt.frostyheights;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.quiltmc.loader.api.ModContainer;
+import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import net.fabricmc.api.ModInitializer;
-import net.ludocrypt.frostyheights.data.FrostyHeightsArtificeData;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
-import net.ludocrypt.frostyheights.init.FrostyHeightsItems;
-import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
+import net.ludocrypt.frostyheights.init.FrostyHeightsSounds;
 import net.minecraft.util.Identifier;
 
 public class FrostyHeights implements ModInitializer {
-
-	public static final Logger LOGGER = LogManager.getLogger("Frosty Heights");
+	public static final Logger LOGGER = LoggerFactory.getLogger("Frosty Heights");
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize(ModContainer mod) {
+		FrostyHeightsSounds.init();
 		FrostyHeightsBlocks.init();
-		FrostyHeightsItems.init();
 		FrostyHeightsBiomes.init();
-		FrostyHeightsWorld.init();
-		FrostyHeightsArtificeData.registerData();
 	}
 
 	public static Identifier id(String id) {
