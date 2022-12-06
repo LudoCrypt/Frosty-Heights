@@ -54,7 +54,7 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 			return chunkGenerator.spaghettiPokeThreshold;
 		}), Codec.DOUBLE.fieldOf("translate_x_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.translateXScale;
-		}), Codec.DOUBLE.fieldOf("translate_s_scale").stable().forGetter((chunkGenerator) -> {
+		}), Codec.DOUBLE.fieldOf("translate_z_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.translateZScale;
 		}), Codec.DOUBLE.fieldOf("total_height_scale").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.totalHeightScale;
@@ -104,19 +104,19 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(BiomeSource source, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
 		return new NoiseIcicleChunkGenerator(source, new NoiseIcicleSettings(
 				/* Cell Noise */
-				FastNoiseSampler.create(true, 1, NoiseType.Cellular, RotationType3D.None, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D),
+				FastNoiseSampler.create(true, 1, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D),
 				/* Translate X Noise */
-				FastNoiseSampler.create(false, 2, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
+				FastNoiseSampler.create(false, 2, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
 				/* Translate Z Noise */
-				FastNoiseSampler.create(false, 3, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
+				FastNoiseSampler.create(false, 3, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 30.0D),
 				/* Refine X Noise */
-				FastNoiseSampler.create(false, 4, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
+				FastNoiseSampler.create(false, 4, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
 				/* Refine Z Noise */
-				FastNoiseSampler.create(false, 5, NoiseType.Perlin, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
+				FastNoiseSampler.create(false, 5, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 3, 0.7D, 0.0D, 2.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2Reduced, 80.0D),
 				/* Poke Noise */
-				FastNoiseSampler.create(true, 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXYPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D),
+				FastNoiseSampler.create(true, 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D),
 				/* Spaghetti Poke Noise */
-				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXYPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)),
+				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)),
 				/* Thresholds */
 				pokeThreshold, spaghettiPokeThreshold, translateXScale, translateZScale, totalHeightScale, totalHeightShift, icicleHeight, icicleScale, wastelandsHeight, wastelandsScale);
 	}
@@ -240,19 +240,19 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	public static class NoiseIcicleSettings {
 
 		public static final Codec<NoiseIcicleSettings> CODEC = RecordCodecBuilder.create((instance) -> {
-			return instance.group(FastNoiseSampler.CODEC.fieldOf("cellNoise").stable().forGetter((chunkGenerator) -> {
+			return instance.group(FastNoiseSampler.CODEC.fieldOf("cell_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.cellNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("translateXNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("translate_x_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.translateXNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("translateZNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("translate_z_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.translateZNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("refineXNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("refine_x_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.refineXNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("refineZNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("refine_z_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.refineZNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("pokeNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("poke_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.pokeNoise;
-			}), FastNoiseSampler.CODEC.fieldOf("spaghettiPokeNoise").stable().forGetter((chunkGenerator) -> {
+			}), FastNoiseSampler.CODEC.fieldOf("spaghetti_poke_noise").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.spaghettiPokeNoise;
 			})).apply(instance, instance.stable(NoiseIcicleSettings::new));
 		});

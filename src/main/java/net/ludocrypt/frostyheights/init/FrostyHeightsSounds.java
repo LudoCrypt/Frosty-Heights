@@ -12,6 +12,17 @@ public class FrostyHeightsSounds {
 	/* Music */
 	public static final SoundEvent MUSIC_HIEMAL_BARRENS = get("music.hiemal_barrens");
 
+	/* Music Discs */
+	public static final SoundEvent MUSIC_DISC_19 = get("music.disc.19");
+	public static final SoundEvent MUSIC_DISC_VIVACE = get("music.disc.vivace");
+	public static final SoundEvent MUSIC_DISC_OATS = get("music.disc.oats");
+	public static final SoundEvent MUSIC_DISC_POTENT = get("music.disc.potent");
+	public static final SoundEvent MUSIC_DISC_FRORE = get("music.disc.frore");
+	public static final SoundEvent MUSIC_DISC_CELLAR = get("music.disc.cellar");
+
+	/* Other */
+	public static final SoundEvent LOOP_WIND = get("loop.wind");
+
 	public static void init() {
 
 	}

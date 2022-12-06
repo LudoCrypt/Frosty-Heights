@@ -60,11 +60,11 @@ public class FastNoiseSampler {
 			return fastNoise.mSeed;
 		}), Codec.DOUBLE.fieldOf("frequency").stable().forGetter((fastNoise) -> {
 			return fastNoise.mFrequency;
-		}), Codec.STRING.fieldOf("noiseType").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("noise_type").stable().forGetter((fastNoise) -> {
 			return fastNoise.mNoiseType.name();
-		}), Codec.STRING.fieldOf("rotationType3D").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("rotation_type_3d").stable().forGetter((fastNoise) -> {
 			return fastNoise.mRotationType3D.name();
-		}), Codec.STRING.fieldOf("fractalType").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("fractal_type").stable().forGetter((fastNoise) -> {
 			return fastNoise.mFractalType.name();
 		}), Codec.INT.fieldOf("octaves").stable().forGetter((fastNoise) -> {
 			return fastNoise.mOctaves;
@@ -72,19 +72,19 @@ public class FastNoiseSampler {
 			return fastNoise.mLacunarity;
 		}), Codec.DOUBLE.fieldOf("gain").stable().forGetter((fastNoise) -> {
 			return fastNoise.mGain;
-		}), Codec.DOUBLE.fieldOf("weightedStrength").stable().forGetter((fastNoise) -> {
+		}), Codec.DOUBLE.fieldOf("weighted_strength").stable().forGetter((fastNoise) -> {
 			return fastNoise.mWeightedStrength;
-		}), Codec.DOUBLE.fieldOf("pingPongStrength").stable().forGetter((fastNoise) -> {
+		}), Codec.DOUBLE.fieldOf("ping_pong_strength").stable().forGetter((fastNoise) -> {
 			return fastNoise.mPingPongStrength;
-		}), Codec.STRING.fieldOf("cellularDistanceFunction").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("cellular_distance_function").stable().forGetter((fastNoise) -> {
 			return fastNoise.mCellularDistanceFunction.name();
-		}), Codec.STRING.fieldOf("cellularReturnType").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("cellular_return_type").stable().forGetter((fastNoise) -> {
 			return fastNoise.mCellularReturnType.name();
-		}), Codec.DOUBLE.fieldOf("cellularJitterModifier").stable().forGetter((fastNoise) -> {
+		}), Codec.DOUBLE.fieldOf("cellular_jitter_modifier").stable().forGetter((fastNoise) -> {
 			return fastNoise.mCellularJitterModifier;
-		}), Codec.STRING.fieldOf("domainWarpType").stable().forGetter((fastNoise) -> {
+		}), Codec.STRING.fieldOf("domain_warp_type").stable().forGetter((fastNoise) -> {
 			return fastNoise.mDomainWarpType.name();
-		}), Codec.DOUBLE.fieldOf("domainWarpAmp").stable().forGetter((fastNoise) -> {
+		}), Codec.DOUBLE.fieldOf("domain_warp_amp").stable().forGetter((fastNoise) -> {
 			return fastNoise.mDomainWarpAmp;
 		})).apply(instance, instance.stable((invert, seed, frequency, noiseType, rotationType3D, fractalType, octaves, lacunarity, gain, weightedStrength, pingPongStrength, cellularDistanceFunction, cellularReturnType, cellularJitterModifier, domainWarpType, domainWarpAmp) -> {
 			FastNoiseSampler noise = new FastNoiseSampler(seed);

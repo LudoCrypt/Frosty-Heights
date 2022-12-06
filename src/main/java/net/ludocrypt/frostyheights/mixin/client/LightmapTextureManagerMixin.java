@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.world.ClientWorld;
@@ -30,8 +31,11 @@ public class LightmapTextureManagerMixin {
 	private void frostyheights$update(float delta, CallbackInfo ci, ClientWorld clientWorld, float f, float g, float h, float i, float j, float l, float k, Vec3f vec3f, float m, Vec3f color, int n, int o) {
 		if (clientWorld.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_KEY)) {
 			if (n < 9 && o < 9) {
-				color.add(20.0F, 30.0F, 30.0F);
+				float weatherDarkening = (float) ((WeatherAccess) (clientWorld)).getWeatherData().getDarknessScalar(delta);
+				color.multiplyComponentwise(weatherDarkening, weatherDarkening, weatherDarkening);
 			}
+
+			// Swap color channels so blue is prominent
 			color.set(color.getZ(), color.getX(), color.getY());
 		}
 	}

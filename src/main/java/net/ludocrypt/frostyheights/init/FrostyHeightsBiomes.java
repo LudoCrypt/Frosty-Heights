@@ -16,7 +16,7 @@ public class FrostyHeightsBiomes {
 	public static final RegistryKey<Biome> HIEMAL_BARRENS = get(FrostyHeightsWorld.THE_HIEMAL, HiemalBarrensBiome.create());
 
 	public static void init() {
-		get("yearning_canal_chunk_generator", NoiseIcicleChunkGenerator.CODEC);
+		get("frosty_heights_chunk_generator", NoiseIcicleChunkGenerator.CODEC);
 	}
 
 	public static RegistryKey<Biome> get(String id, Biome biome) {

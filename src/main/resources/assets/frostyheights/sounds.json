@@ -3,7 +3,14 @@
 		"sounds": [
 			{
 				"name": "frostyheights:biome/loop/hiemal_barrens",
-				"volume": 0.3,
+				"stream": true
+			}
+		]
+	},
+	"loop.wind": {
+		"sounds": [
+			{
+				"name": "frostyheights:wind",
 				"stream": true
 			}
 		]
@@ -76,6 +83,54 @@
 			},
 			{
 				"name": "frostyheights:music/windy4",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.19": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/19",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.vivace": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/vivace",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.oats": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/oats",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.potent": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/potent",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.frore": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/frore",
+				"stream": true
+			}
+		]
+	},
+	"music.disc.cellar": {
+		"sounds": [
+			{
+				"name": "frostyheights:music/record/cellar",
 				"stream": true
 			}
 		]

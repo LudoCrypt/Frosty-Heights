@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.access.WeatherManagerAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
-import net.ludocrypt.frostyheights.weather.FrostyHeightsWeather;
+import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherData;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListener;
@@ -73,38 +73,8 @@ public abstract class ServerWorldMixin extends World implements WeatherManagerAc
 
 	@Unique
 	@Override
-	public FrostyHeightsWeather getCurrentWeather() {
-		return this.getFrostyHeightsWeatherManager().getCurrentWeather();
-	}
-
-	@Unique
-	@Override
-	public FrostyHeightsWeather getNextWeather() {
-		return this.getFrostyHeightsWeatherManager().getNextWeather();
-	}
-
-	@Unique
-	@Override
-	public int getTicksUntilNextWeather() {
-		return this.getFrostyHeightsWeatherManager().getTicksUntilNextWeather();
-	}
-
-	@Unique
-	@Override
-	public void setCurrentWeather(FrostyHeightsWeather weather) {
-		this.getFrostyHeightsWeatherManager().setCurrentWeather(weather);
-	}
-
-	@Unique
-	@Override
-	public void setNextWeather(FrostyHeightsWeather weather) {
-		this.getFrostyHeightsWeatherManager().setNextWeather(weather);
-	}
-
-	@Unique
-	@Override
-	public void setTicksUntilNextWeather(int ticks) {
-		this.getFrostyHeightsWeatherManager().setTicksUntilNextWeather(ticks);
+	public FrostyHeightsWeatherData getWeatherData() {
+		return this.getFrostyHeightsWeatherManager().getWeatherData();
 	}
 
 	@Shadow

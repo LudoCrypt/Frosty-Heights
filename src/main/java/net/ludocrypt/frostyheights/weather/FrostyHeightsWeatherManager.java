@@ -1,17 +1,22 @@
 package net.ludocrypt.frostyheights.weather;
 
-import org.quiltmc.qsl.networking.api.PacketByteBufs;
-import org.quiltmc.qsl.networking.api.PlayerLookup;
-import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
-
-import net.ludocrypt.frostyheights.FrostyHeights;
+import net.ludocrypt.frostyheights.access.WeatherAccess;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.World;
 
 /**
  * 
@@ -21,91 +26,177 @@ import net.minecraft.world.PersistentState;
  *
  */
 public class FrostyHeightsWeatherManager extends PersistentState {
-	public static final Identifier WEATHER_UPDATE_PACKET_ID = FrostyHeights.id("weather_update");
+	public static final FastNoiseSampler AMPLITUDE_SAMPLER = FastNoiseSampler.create(false, 0, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.BasicGrid, 70.0D);
+	public static final FastNoiseSampler DIRECTION_SAMPLER = FastNoiseSampler.create(false, 1, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.005D, FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 2.0D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.OpenSimplex2Reduced, 100.0D);
 
 	private final ServerWorld world;
 
-	private int ticksUntilNextWeather = 0;
-	private FrostyHeightsWeather currentWeather = FrostyHeightsWeather.CLEAR;
-	private FrostyHeightsWeather nextWeather = FrostyHeightsWeather.UNDETERMINED;
+	private final FrostyHeightsWeatherData weatherData;
 
 	public FrostyHeightsWeatherManager(ServerWorld world) {
+		this(world, new FrostyHeightsWeatherData());
+	}
+
+	public FrostyHeightsWeatherManager(ServerWorld world, FrostyHeightsWeatherData weatherData) {
 		this.world = world;
+		this.weatherData = weatherData;
+		this.getWeatherData().setWindSeed(world.getRandom().nextLong());
 		this.markDirty();
 	}
 
 	public void tick() {
-		if (this.getTicksUntilNextWeather() == 0) {
-			if (this.getNextWeather() != FrostyHeightsWeather.UNDETERMINED) {
-				this.setCurrentWeather(this.getNextWeather());
+		// Move the wind based on velocity
+		this.getWeatherData().setPrevWindDelta(this.getWeatherData().getWindDelta());
+		this.getWeatherData().setWindDelta(this.getWeatherData().getWindDelta() + this.getWeatherData().getWindVelocity(1.0F));
+
+		// Checks if the ticks left is at 0, i.e. should weather change.
+		if (this.getWeatherData().getTicksUntilNextWeather() == 0) {
+			FrostyHeightsWeather prevWeather = this.getWeatherData().getCurrentWeather();
+			this.getWeatherData().setPrevWeather(prevWeather);
+
+			/*
+			 * Change weather events if the next weather event is not undetermined. This is
+			 * because at the start of the world, the time until is 0 by default, as well as
+			 * the next weather being undetermined, which can only happen at the start of a
+			 * world. It has to determine those undetermined things.
+			 */
+			if (this.getWeatherData().getNextWeather() != FrostyHeightsWeather.UNDETERMINED) {
+				this.getWeatherData().setCurrentWeather(this.getWeatherData().getNextWeather());
 			}
 
-			this.setNextWeather(this.getCurrentWeather().getNext(this.world.getRandom()));
-			this.setTicksUntilNextWeather(MathHelper.nextBetween(this.world.getRandom(), this.getNextWeather().getMinTime(), this.getNextWeather().getMaxTime()));
+			// Set next weather randomly
+			this.getWeatherData().setNextWeather(this.getWeatherData().getCurrentWeather().getNext(this.world.getRandom()));
 
+			// Set time till next weather change
+			this.getWeatherData().setTicksUntilNextWeather(MathHelper.nextBetween(this.world.getRandom(), this.getWeatherData().getNextWeather().getMinTime(), this.getWeatherData().getNextWeather().getMaxTime()));
 		} else {
-			this.setTicksUntilNextWeather(this.getTicksUntilNextWeather() - 1);
+			// Count down time until weather changes if weather cycle is enabled.
+			if (this.world.getGameRules().getBoolean(GameRules.DO_WEATHER_CYCLE)) {
+				this.getWeatherData().setTicksUntilNextWeather(this.getWeatherData().getTicksUntilNextWeather() - 1);
+			}
 		}
 
+		/*
+		 * If the previous weather settings are undetermined, which only happens at the
+		 * start of a world, set the previous weather settings to be the current weather
+		 * settings, as there were none prior.
+		 */
+		if (this.getWeatherData().getPrevWeatherSettings().isUndetermined()) {
+			this.getWeatherData().setPrevWeatherSettings(this.getWeatherData().getCurrentWeather().toWeatherSettings());
+		}
+
+		/*
+		 * If the weather settings are undetermined, which only happens at the start of
+		 * a world, set the weather settings to be the current weather settings.
+		 */
+		if (this.getWeatherData().getWeatherSettings().isUndetermined()) {
+			this.getWeatherData().setWeatherSettings(this.getWeatherData().getCurrentWeather().toWeatherSettings());
+		}
+
+		// Set the previous weather settings to the current weather settings before we
+		// update the weather settings.
+		this.getWeatherData().setPrevWeatherSettings(this.getWeatherData().getWeatherSettings().clone());
+
+		// Update the weather settings by inching towards the current weathers' weather
+		// settings.
+		this.getWeatherData().getWeatherSettings().stepTowards(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 200);
+
+		// Inch darkness separately for warning players of the upcoming weather 600
+		// ticks, 30 seconds, before change.
+		if (this.getWeatherData().getTicksUntilNextWeather() <= 600) {
+			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getNextWeather().toWeatherSettings(), 600);
+		} else {
+			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 200);
+		}
+
+		// Inch snow separately for warning players of the upcoming weather 1200
+		// ticks, 60 seconds, before change.
+		if (this.getWeatherData().getTicksUntilNextWeather() <= 1200) {
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0001);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0001);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0005);
+		} else {
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
+		}
+
+		// Update
 		this.sendToClient();
 		this.markDirty();
 	}
 
 	public void sendToClient() {
-		if (!this.world.isClient) {
-			PacketByteBuf buf = PacketByteBufs.create();
-			buf.writeInt(this.getTicksUntilNextWeather());
-			buf.writeByte((byte) this.getCurrentWeather().ordinal());
-			buf.writeByte((byte) this.getNextWeather().ordinal());
+		this.getWeatherData().sendToClient(this.world);
+	}
 
-			for (ServerPlayerEntity player : PlayerLookup.world(world)) {
-				ServerPlayNetworking.send(player, WEATHER_UPDATE_PACKET_ID, buf);
-			}
-		}
+	public FrostyHeightsWeatherData getWeatherData() {
+		return weatherData;
 	}
 
 	public static FrostyHeightsWeatherManager fromNbt(ServerWorld world, NbtCompound nbt) {
-		FrostyHeightsWeatherManager manager = new FrostyHeightsWeatherManager(world);
-
-		manager.setTicksUntilNextWeather(nbt.getInt("ticksUntilNextWeather"));
-		manager.setCurrentWeather(FrostyHeightsWeather.values()[nbt.getByte("currentWeather")]);
-		manager.setNextWeather(FrostyHeightsWeather.values()[nbt.getByte("nextWeather")]);
-
-		return manager;
+		return new FrostyHeightsWeatherManager(world, FrostyHeightsWeatherData.fromNbt(world, nbt));
 	}
 
 	@Override
 	public NbtCompound writeNbt(NbtCompound nbt) {
-
-		nbt.putInt("ticksUntilNextWeather", this.getTicksUntilNextWeather());
-		nbt.putByte("currentWeather", (byte) this.getCurrentWeather().ordinal());
-		nbt.putByte("nextWeather", (byte) this.getNextWeather().ordinal());
-
+		FrostyHeightsWeatherData.writeNbt(this.getWeatherData(), nbt);
 		return nbt;
 	}
 
-	public FrostyHeightsWeather getCurrentWeather() {
-		return this.currentWeather;
+	public static Vec2f getWindPolar(PlayerEntity player) {
+		return getWindPolar(player.world, player.getPos());
 	}
 
-	public FrostyHeightsWeather getNextWeather() {
-		return this.nextWeather;
+	public static Vec2f getWindPolar(World world, Vec3d pos) {
+		return getWindPolar(world, pos, 1.0F);
 	}
 
-	public int getTicksUntilNextWeather() {
-		return this.ticksUntilNextWeather;
+	public static Vec2f getWindPolar(World world, Vec3d pos, float tickDelta) {
+		double windDelta = ((WeatherAccess) (world)).getWeatherData().getWindDelta(tickDelta);
+		double amplitude = MathHelper.clamp((AMPLITUDE_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), Long.hashCode(((WeatherAccess) (world)).getWeatherData().getWindSeed())) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(tickDelta), 0.0D, 1.0D);
+		double theta = DIRECTION_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), Long.hashCode(((WeatherAccess) (world)).getWeatherData().getWindSeed())) * 360.0D;
+
+		amplitude *= getScalingFactor(pos.getY());
+		amplitude = MathHelper.clamp(amplitude, getMinimumWind(pos.getY()), 1.0D);
+
+		return new Vec2f((float) amplitude, (float) theta);
 	}
 
-	public void setCurrentWeather(FrostyHeightsWeather weather) {
-		this.currentWeather = weather;
+	public static double getScalingFactor(double y) {
+		return piecewiseScalar(y, 0.2D, 1.0D, 0.4D, 1.0D, 1.5D);
 	}
 
-	public void setNextWeather(FrostyHeightsWeather weather) {
-		this.nextWeather = weather;
+	public static double getMinimumWind(double y) {
+		if (y >= 256) {
+			return piecewiseScalar(y, 0.0D, 1.0D, 1.0D, 0.7D, 0.5D);
+		}
+		return 0.0D;
 	}
 
-	public void setTicksUntilNextWeather(int ticks) {
-		this.ticksUntilNextWeather = ticks;
+	// https://www.desmos.com/calculator/ftkfmz5lmc
+	public static double piecewiseScalar(double y, double lowerLimit, double lowerScalar, double lowerPower, double upperScalar, double upperPower) {
+		double lowerBound = 180.0D;
+		double upperBound = 256.0D;
+		double wastelandsBound = 270.0D;
+
+		if (y < upperBound) {
+			if (y > lowerBound) {
+				if (lowerScalar == 0.0D) {
+					return -(lowerLimit * Math.pow(y - lowerBound, lowerPower)) / Math.pow(upperBound - lowerBound, lowerPower);
+				} else {
+					return -((lowerScalar * ((-lowerLimit) / (lowerScalar) + 1.0D) * Math.pow(y - lowerBound, lowerPower)) / Math.pow(upperBound - lowerBound, lowerPower)) + lowerScalar;
+				}
+			} else {
+				return lowerScalar;
+			}
+		} else {
+			if (y < wastelandsBound) {
+				return ((upperScalar * ((-lowerLimit) / (upperScalar) + 1.0D) * Math.pow(y - upperBound, upperPower)) / Math.pow(wastelandsBound - upperBound, upperPower)) + lowerLimit;
+			} else {
+				return upperScalar;
+			}
+		}
 	}
 
 }
