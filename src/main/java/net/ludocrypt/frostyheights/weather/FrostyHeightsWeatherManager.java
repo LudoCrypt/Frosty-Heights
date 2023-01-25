@@ -1,14 +1,7 @@
 package net.ludocrypt.frostyheights.weather;
 
 import net.ludocrypt.frostyheights.access.WeatherAccess;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.MathHelper;
@@ -26,8 +19,6 @@ import net.minecraft.world.World;
  *
  */
 public class FrostyHeightsWeatherManager extends PersistentState {
-	public static final FastNoiseSampler AMPLITUDE_SAMPLER = FastNoiseSampler.create(false, 0, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.BasicGrid, 70.0D);
-	public static final FastNoiseSampler DIRECTION_SAMPLER = FastNoiseSampler.create(false, 1, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.005D, FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 2.0D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.OpenSimplex2Reduced, 100.0D);
 
 	private final ServerWorld world;
 
@@ -40,7 +31,6 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 	public FrostyHeightsWeatherManager(ServerWorld world, FrostyHeightsWeatherData weatherData) {
 		this.world = world;
 		this.weatherData = weatherData;
-		this.getWeatherData().setWindSeed(world.getRandom().nextLong());
 		this.markDirty();
 	}
 
@@ -82,7 +72,7 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 		 * settings, as there were none prior.
 		 */
 		if (this.getWeatherData().getPrevWeatherSettings().isUndetermined()) {
-			this.getWeatherData().setPrevWeatherSettings(this.getWeatherData().getCurrentWeather().toWeatherSettings());
+			this.getWeatherData().setPrevWeatherSettings(this.getWeatherData().getCurrentWeather().cloneSettings());
 		}
 
 		/*
@@ -90,7 +80,7 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 		 * a world, set the weather settings to be the current weather settings.
 		 */
 		if (this.getWeatherData().getWeatherSettings().isUndetermined()) {
-			this.getWeatherData().setWeatherSettings(this.getWeatherData().getCurrentWeather().toWeatherSettings());
+			this.getWeatherData().setWeatherSettings(this.getWeatherData().getCurrentWeather().cloneSettings());
 		}
 
 		// Set the previous weather settings to the current weather settings before we
@@ -99,26 +89,26 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 
 		// Update the weather settings by inching towards the current weathers' weather
 		// settings.
-		this.getWeatherData().getWeatherSettings().stepTowards(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 200);
+		this.getWeatherData().getWeatherSettings().stepTowards(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
 
 		// Inch darkness separately for warning players of the upcoming weather 600
 		// ticks, 30 seconds, before change.
 		if (this.getWeatherData().getTicksUntilNextWeather() <= 600) {
-			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getNextWeather().toWeatherSettings(), 600);
+			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getNextWeather().cloneSettings(), 600);
 		} else {
-			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 200);
+			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
 		}
 
 		// Inch snow separately for warning players of the upcoming weather 1200
 		// ticks, 60 seconds, before change.
 		if (this.getWeatherData().getTicksUntilNextWeather() <= 1200) {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0001);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0001);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().toWeatherSettings(), 0.0005);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 0.0001);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 0.0001);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().cloneSettings(), 0.0005);
 		} else {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().toWeatherSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
 		}
 
 		// Update
@@ -144,8 +134,8 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 		return nbt;
 	}
 
-	public static Vec2f getWindPolar(PlayerEntity player) {
-		return getWindPolar(player.world, player.getPos());
+	public static Vec2f getWindPolar(Entity entity) {
+		return getWindPolar(entity.world, entity.getPos(), 1.0F);
 	}
 
 	public static Vec2f getWindPolar(World world, Vec3d pos) {
@@ -153,9 +143,9 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 	}
 
 	public static Vec2f getWindPolar(World world, Vec3d pos, float tickDelta) {
-		double windDelta = ((WeatherAccess) (world)).getWeatherData().getWindDelta(tickDelta);
-		double amplitude = MathHelper.clamp((AMPLITUDE_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), Long.hashCode(((WeatherAccess) (world)).getWeatherData().getWindSeed())) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(tickDelta), 0.0D, 1.0D);
-		double theta = DIRECTION_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), Long.hashCode(((WeatherAccess) (world)).getWeatherData().getWindSeed())) * 360.0D;
+		double windDelta = ((WeatherAccess) (world)).getWeatherData().getWindDelta();
+		double amplitude = MathHelper.clamp((((WeatherAccess) (world)).getWeatherData().getAmplitudeNoiseSampler().GetNoise(pos.getX(), windDelta, pos.getZ()) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(1.0F), 0.0D, 1.0D);
+		double theta = ((WeatherAccess) (world)).getWeatherData().getDirectionNoiseSampler().GetNoise(pos.getX(), windDelta, pos.getZ()) * 360.0D;
 
 		amplitude *= getScalingFactor(pos.getY());
 		amplitude = MathHelper.clamp(amplitude, getMinimumWind(pos.getY()), 1.0D);

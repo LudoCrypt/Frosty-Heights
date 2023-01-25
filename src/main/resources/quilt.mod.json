@@ -24,7 +24,11 @@
 		"entrypoints": {
 			"init": "net.ludocrypt.frostyheights.FrostyHeights",
 			"client_init": "net.ludocrypt.frostyheights.client.FrostyHeightsClient",
-			"limlib:pre_registration": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld"
+			"limlib:dimension_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
+			"limlib:registry_loader_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
+			"limlib:sound_effects_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
+			"limlib:skybox_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
+			"limlib:dimension_effects_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld"
 		},
 		"depends": [
 			{

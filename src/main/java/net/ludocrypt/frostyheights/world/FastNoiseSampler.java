@@ -56,7 +56,7 @@ public class FastNoiseSampler {
 	public static final Codec<FastNoiseSampler> CODEC = RecordCodecBuilder.create((instance) -> {
 		return instance.group(Codec.BOOL.fieldOf("invert").stable().forGetter((fastNoise) -> {
 			return fastNoise.invert;
-		}), Codec.INT.fieldOf("seed").stable().forGetter((fastNoise) -> {
+		}), Codec.LONG.fieldOf("seed").stable().forGetter((fastNoise) -> {
 			return fastNoise.mSeed;
 		}), Codec.DOUBLE.fieldOf("frequency").stable().forGetter((fastNoise) -> {
 			return fastNoise.mFrequency;
@@ -136,7 +136,7 @@ public class FastNoiseSampler {
 	};
 
 	private boolean invert = false;
-	private int mSeed = 1337;
+	private long mSeed = 1337;
 	private double mFrequency = 0.01d;
 	private NoiseType mNoiseType = NoiseType.OpenSimplex2;
 	private RotationType3D mRotationType3D = RotationType3D.None;
@@ -162,12 +162,8 @@ public class FastNoiseSampler {
 	public FastNoiseSampler() {
 	}
 
-	public FastNoiseSampler(int seed) {
-		SetSeed(seed);
-	}
-
 	public FastNoiseSampler(long seed) {
-		SetSeed(Long.hashCode(seed));
+		SetSeed(seed);
 	}
 
 	public static FastNoiseSampler create(boolean invert, long seed, NoiseType noiseType, RotationType3D rotationType3D, double frequency, FractalType fractalType, int octaves, double lacunarity, double gain, double weightedStrength, double pingPongStrength, CellularDistanceFunction cellularDistanceFunction, CellularReturnType cellularReturnType, double cellularJitterModifier, DomainWarpType domainWarpType, double domainWarpAmp) {
@@ -194,12 +190,8 @@ public class FastNoiseSampler {
 		this.invert = invert;
 	}
 
-	public void SetSeed(int seed) {
-		mSeed = seed;
-	}
-
 	public void SetSeed(long seed) {
-		mSeed = Long.hashCode(seed);
+		mSeed = seed;
 	}
 
 	public void SetFrequency(double frequency) {
@@ -264,7 +256,7 @@ public class FastNoiseSampler {
 		mDomainWarpAmp = domainWarpAmp;
 	}
 
-	public double GetNoise(double x, double y, int worldSeed) {
+	public double GetNoise(double x, double y) {
 
 		x *= mFrequency;
 		y *= mFrequency;
@@ -285,17 +277,17 @@ public class FastNoiseSampler {
 
 		switch (mFractalType) {
 		default:
-			return invert ? -GenNoiseSingle(worldSeed + mSeed, x, y) : GenNoiseSingle(worldSeed + mSeed, x, y);
+			return invert ? -GenNoiseSingle(mSeed, x, y) : GenNoiseSingle(mSeed, x, y);
 		case FBm:
-			return invert ? -GenFractalFBm(x, y, worldSeed) : GenFractalFBm(x, y, worldSeed);
+			return invert ? -GenFractalFBm(x, y) : GenFractalFBm(x, y);
 		case Ridged:
-			return invert ? -GenFractalRidged(x, y, worldSeed) : GenFractalRidged(x, y, worldSeed);
+			return invert ? -GenFractalRidged(x, y) : GenFractalRidged(x, y);
 		case PingPong:
-			return invert ? -GenFractalPingPong(x, y, worldSeed) : GenFractalPingPong(x, y, worldSeed);
+			return invert ? -GenFractalPingPong(x, y) : GenFractalPingPong(x, y);
 		}
 	}
 
-	public double GetNoise(double x, double y, double z, int worldSeed) {
+	public double GetNoise(double x, double y, double z) {
 		x *= mFrequency;
 		y *= mFrequency;
 		z *= mFrequency;
@@ -333,40 +325,40 @@ public class FastNoiseSampler {
 
 		switch (mFractalType) {
 		default:
-			return invert ? -GenNoiseSingle(worldSeed + mSeed, x, y, z) : GenNoiseSingle(worldSeed + mSeed, x, y, z);
+			return invert ? -GenNoiseSingle(mSeed, x, y, z) : GenNoiseSingle(mSeed, x, y, z);
 		case FBm:
-			return invert ? -GenFractalFBm(x, y, z, worldSeed) : GenFractalFBm(x, y, z, worldSeed);
+			return invert ? -GenFractalFBm(x, y, z) : GenFractalFBm(x, y, z);
 		case Ridged:
-			return invert ? -GenFractalRidged(x, y, z, worldSeed) : GenFractalRidged(x, y, z, worldSeed);
+			return invert ? -GenFractalRidged(x, y, z) : GenFractalRidged(x, y, z);
 		case PingPong:
-			return invert ? -GenFractalPingPong(x, y, z, worldSeed) : GenFractalPingPong(x, y, z, worldSeed);
+			return invert ? -GenFractalPingPong(x, y, z) : GenFractalPingPong(x, y, z);
 		}
 	}
 
-	public void DomainWarp(Vector2 coord, int worldSeed) {
+	public void DomainWarp(Vector2 coord) {
 		switch (mFractalType) {
 		default:
-			DomainWarpSingle(coord, worldSeed);
+			DomainWarpSingle(coord);
 			break;
 		case DomainWarpProgressive:
-			DomainWarpFractalProgressive(coord, worldSeed);
+			DomainWarpFractalProgressive(coord);
 			break;
 		case DomainWarpIndependent:
-			DomainWarpFractalIndependent(coord, worldSeed);
+			DomainWarpFractalIndependent(coord);
 			break;
 		}
 	}
 
-	public void DomainWarp(Vector3 coord, int worldSeed) {
+	public void DomainWarp(Vector3 coord) {
 		switch (mFractalType) {
 		default:
-			DomainWarpSingle(coord, worldSeed);
+			DomainWarpSingle(coord);
 			break;
 		case DomainWarpProgressive:
-			DomainWarpFractalProgressive(coord, worldSeed);
+			DomainWarpFractalProgressive(coord);
 			break;
 		case DomainWarpIndependent:
-			DomainWarpFractalIndependent(coord, worldSeed);
+			DomainWarpFractalIndependent(coord);
 			break;
 		}
 	}
@@ -438,37 +430,37 @@ public class FastNoiseSampler {
 	private static final int PrimeY = 1136930381;
 	private static final int PrimeZ = 1720413743;
 
-	private static int Hash(int seed, int xPrimed, int yPrimed) {
-		int hash = seed ^ xPrimed ^ yPrimed;
+	private static int Hash(long seed, int xPrimed, int yPrimed) {
+		long hash = seed ^ xPrimed ^ yPrimed;
 
 		hash *= 0x27d4eb2d;
-		return hash;
+		return (int) hash;
 	}
 
-	private static int Hash(int seed, int xPrimed, int yPrimed, int zPrimed) {
-		int hash = seed ^ xPrimed ^ yPrimed ^ zPrimed;
+	private static int Hash(long seed, int xPrimed, int yPrimed, int zPrimed) {
+		long hash = seed ^ xPrimed ^ yPrimed ^ zPrimed;
 
 		hash *= 0x27d4eb2d;
-		return hash;
+		return (int) hash;
 	}
 
-	private static double ValCoord(int seed, int xPrimed, int yPrimed) {
-		int hash = Hash(seed, xPrimed, yPrimed);
+	private static double ValCoord(long seed, int xPrimed, int yPrimed) {
+		long hash = Hash(seed, xPrimed, yPrimed);
 
 		hash *= hash;
 		hash ^= hash << 19;
 		return hash * (1 / 2147483648.0d);
 	}
 
-	private static double ValCoord(int seed, int xPrimed, int yPrimed, int zPrimed) {
-		int hash = Hash(seed, xPrimed, yPrimed, zPrimed);
+	private static double ValCoord(long seed, int xPrimed, int yPrimed, int zPrimed) {
+		long hash = Hash(seed, xPrimed, yPrimed, zPrimed);
 
 		hash *= hash;
 		hash ^= hash << 19;
 		return hash * (1 / 2147483648.0d);
 	}
 
-	private static double GradCoord(int seed, int xPrimed, int yPrimed, double xd, double yd) {
+	private static double GradCoord(long seed, int xPrimed, int yPrimed, double xd, double yd) {
 		int hash = Hash(seed, xPrimed, yPrimed);
 		hash ^= hash >> 15;
 		hash &= 127 << 1;
@@ -479,7 +471,7 @@ public class FastNoiseSampler {
 		return xd * xg + yd * yg;
 	}
 
-	private static double GradCoord(int seed, int xPrimed, int yPrimed, int zPrimed, double xd, double yd, double zd) {
+	private static double GradCoord(long seed, int xPrimed, int yPrimed, int zPrimed, double xd, double yd, double zd) {
 		int hash = Hash(seed, xPrimed, yPrimed, zPrimed);
 		hash ^= hash >> 15;
 		hash &= 63 << 2;
@@ -491,7 +483,7 @@ public class FastNoiseSampler {
 		return xd * xg + yd * yg + zd * zg;
 	}
 
-	private double GenNoiseSingle(int seed, double x, double y) {
+	private double GenNoiseSingle(long seed, double x, double y) {
 		switch (mNoiseType) {
 		case OpenSimplex2:
 			return SingleSimplex(seed, x, y);
@@ -510,7 +502,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private double GenNoiseSingle(int seed, double x, double y, double z) {
+	private double GenNoiseSingle(long seed, double x, double y, double z) {
 		switch (mNoiseType) {
 		case OpenSimplex2:
 			return SingleOpenSimplex2(seed, x, y, z);
@@ -573,8 +565,8 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private double GenFractalFBm(double x, double y, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalFBm(double x, double y) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -591,8 +583,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalFBm(double x, double y, double z, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalFBm(double x, double y, double z) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -610,8 +602,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalRidged(double x, double y, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalRidged(double x, double y) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -628,8 +620,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalRidged(double x, double y, double z, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalRidged(double x, double y, double z) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -647,8 +639,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalPingPong(double x, double y, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalPingPong(double x, double y) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -665,8 +657,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalPingPong(double x, double y, double z, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private double GenFractalPingPong(double x, double y, double z) {
+		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -684,7 +676,7 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double SingleSimplex(int seed, double x, double y) {
+	private double SingleSimplex(long seed, double x, double y) {
 
 		final double SQRT3 = 1.7320508075688772935274463415059d;
 		final double G2 = (3 - SQRT3) / 6;
@@ -742,7 +734,7 @@ public class FastNoiseSampler {
 		return (n0 + n1 + n2) * 99.83685446303647d;
 	}
 
-	private double SingleOpenSimplex2(int seed, double x, double y, double z) {
+	private double SingleOpenSimplex2(long seed, double x, double y, double z) {
 
 		int i = FastRound(x);
 		int j = FastRound(y);
@@ -818,7 +810,7 @@ public class FastNoiseSampler {
 		return value * 32.69428253173828125d;
 	}
 
-	private double SingleOpenSimplex2S(int seed, double x, double y) {
+	private double SingleOpenSimplex2S(long seed, double x, double y) {
 
 		final double SQRT3 = (double) 1.7320508075688772935274463415059;
 		final double G2 = (3 - SQRT3) / 6;
@@ -915,7 +907,7 @@ public class FastNoiseSampler {
 		return value * 18.24196194486065d;
 	}
 
-	private double SingleOpenSimplex2S(int seed, double x, double y, double z) {
+	private double SingleOpenSimplex2S(long seed, double x, double y, double z) {
 
 		int i = FastFloor(x);
 		int j = FastFloor(y);
@@ -927,7 +919,7 @@ public class FastNoiseSampler {
 		i *= PrimeX;
 		j *= PrimeY;
 		k *= PrimeZ;
-		int seed2 = seed + 1293373;
+		long seed2 = seed + 1293373;
 
 		int xNMask = (int) (-0.5d - xi);
 		int yNMask = (int) (-0.5d - yi);
@@ -1063,7 +1055,7 @@ public class FastNoiseSampler {
 		return value * 9.046026385208288d;
 	}
 
-	private double SingleCellular(int seed, double x, double y) {
+	private double SingleCellular(long seed, double x, double y) {
 		int xr = FastRound(x);
 		int yr = FastRound(y);
 
@@ -1178,7 +1170,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private double SingleCellular(int seed, double x, double y, double z) {
+	private double SingleCellular(long seed, double x, double y, double z) {
 		int xr = FastRound(x);
 		int yr = FastRound(y);
 		int zr = FastRound(z);
@@ -1314,7 +1306,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private double SinglePerlin(int seed, double x, double y) {
+	private double SinglePerlin(long seed, double x, double y) {
 		int x0 = FastFloor(x);
 		int y0 = FastFloor(y);
 
@@ -1337,7 +1329,7 @@ public class FastNoiseSampler {
 		return Lerp(xf0, xf1, ys) * 1.4247691104677813d;
 	}
 
-	private double SinglePerlin(int seed, double x, double y, double z) {
+	private double SinglePerlin(long seed, double x, double y, double z) {
 		int x0 = FastFloor(x);
 		int y0 = FastFloor(y);
 		int z0 = FastFloor(z);
@@ -1371,7 +1363,7 @@ public class FastNoiseSampler {
 		return Lerp(yf0, yf1, zs) * 0.964921414852142333984375d;
 	}
 
-	private double SingleValueCubic(int seed, double x, double y) {
+	private double SingleValueCubic(long seed, double x, double y) {
 		int x1 = FastFloor(x);
 		int y1 = FastFloor(y);
 
@@ -1390,7 +1382,7 @@ public class FastNoiseSampler {
 		return CubicLerp(CubicLerp(ValCoord(seed, x0, y0), ValCoord(seed, x1, y0), ValCoord(seed, x2, y0), ValCoord(seed, x3, y0), xs), CubicLerp(ValCoord(seed, x0, y1), ValCoord(seed, x1, y1), ValCoord(seed, x2, y1), ValCoord(seed, x3, y1), xs), CubicLerp(ValCoord(seed, x0, y2), ValCoord(seed, x1, y2), ValCoord(seed, x2, y2), ValCoord(seed, x3, y2), xs), CubicLerp(ValCoord(seed, x0, y3), ValCoord(seed, x1, y3), ValCoord(seed, x2, y3), ValCoord(seed, x3, y3), xs), ys) * (1 / (1.5d * 1.5d));
 	}
 
-	private double SingleValueCubic(int seed, double x, double y, double z) {
+	private double SingleValueCubic(long seed, double x, double y, double z) {
 		int x1 = FastFloor(x);
 		int y1 = FastFloor(y);
 		int z1 = FastFloor(z);
@@ -1416,7 +1408,7 @@ public class FastNoiseSampler {
 		return CubicLerp(CubicLerp(CubicLerp(ValCoord(seed, x0, y0, z0), ValCoord(seed, x1, y0, z0), ValCoord(seed, x2, y0, z0), ValCoord(seed, x3, y0, z0), xs), CubicLerp(ValCoord(seed, x0, y1, z0), ValCoord(seed, x1, y1, z0), ValCoord(seed, x2, y1, z0), ValCoord(seed, x3, y1, z0), xs), CubicLerp(ValCoord(seed, x0, y2, z0), ValCoord(seed, x1, y2, z0), ValCoord(seed, x2, y2, z0), ValCoord(seed, x3, y2, z0), xs), CubicLerp(ValCoord(seed, x0, y3, z0), ValCoord(seed, x1, y3, z0), ValCoord(seed, x2, y3, z0), ValCoord(seed, x3, y3, z0), xs), ys), CubicLerp(CubicLerp(ValCoord(seed, x0, y0, z1), ValCoord(seed, x1, y0, z1), ValCoord(seed, x2, y0, z1), ValCoord(seed, x3, y0, z1), xs), CubicLerp(ValCoord(seed, x0, y1, z1), ValCoord(seed, x1, y1, z1), ValCoord(seed, x2, y1, z1), ValCoord(seed, x3, y1, z1), xs), CubicLerp(ValCoord(seed, x0, y2, z1), ValCoord(seed, x1, y2, z1), ValCoord(seed, x2, y2, z1), ValCoord(seed, x3, y2, z1), xs), CubicLerp(ValCoord(seed, x0, y3, z1), ValCoord(seed, x1, y3, z1), ValCoord(seed, x2, y3, z1), ValCoord(seed, x3, y3, z1), xs), ys), CubicLerp(CubicLerp(ValCoord(seed, x0, y0, z2), ValCoord(seed, x1, y0, z2), ValCoord(seed, x2, y0, z2), ValCoord(seed, x3, y0, z2), xs), CubicLerp(ValCoord(seed, x0, y1, z2), ValCoord(seed, x1, y1, z2), ValCoord(seed, x2, y1, z2), ValCoord(seed, x3, y1, z2), xs), CubicLerp(ValCoord(seed, x0, y2, z2), ValCoord(seed, x1, y2, z2), ValCoord(seed, x2, y2, z2), ValCoord(seed, x3, y2, z2), xs), CubicLerp(ValCoord(seed, x0, y3, z2), ValCoord(seed, x1, y3, z2), ValCoord(seed, x2, y3, z2), ValCoord(seed, x3, y3, z2), xs), ys), CubicLerp(CubicLerp(ValCoord(seed, x0, y0, z3), ValCoord(seed, x1, y0, z3), ValCoord(seed, x2, y0, z3), ValCoord(seed, x3, y0, z3), xs), CubicLerp(ValCoord(seed, x0, y1, z3), ValCoord(seed, x1, y1, z3), ValCoord(seed, x2, y1, z3), ValCoord(seed, x3, y1, z3), xs), CubicLerp(ValCoord(seed, x0, y2, z3), ValCoord(seed, x1, y2, z3), ValCoord(seed, x2, y2, z3), ValCoord(seed, x3, y2, z3), xs), CubicLerp(ValCoord(seed, x0, y3, z3), ValCoord(seed, x1, y3, z3), ValCoord(seed, x2, y3, z3), ValCoord(seed, x3, y3, z3), xs), ys), zs) * (1 / (1.5d * 1.5d * 1.5d));
 	}
 
-	private double SingleValue(int seed, double x, double y) {
+	private double SingleValue(long seed, double x, double y) {
 		int x0 = FastFloor(x);
 		int y0 = FastFloor(y);
 
@@ -1434,7 +1426,7 @@ public class FastNoiseSampler {
 		return Lerp(xf0, xf1, ys);
 	}
 
-	private double SingleValue(int seed, double x, double y, double z) {
+	private double SingleValue(long seed, double x, double y, double z) {
 		int x0 = FastFloor(x);
 		int y0 = FastFloor(y);
 		int z0 = FastFloor(z);
@@ -1461,7 +1453,7 @@ public class FastNoiseSampler {
 		return Lerp(yf0, yf1, zs);
 	}
 
-	private void DoSingleDomainWarp(int seed, double amp, double freq, double x, double y, Vector2 coord) {
+	private void DoSingleDomainWarp(long seed, double amp, double freq, double x, double y, Vector2 coord) {
 		switch (mDomainWarpType) {
 		case OpenSimplex2:
 			SingleDomainWarpSimplexGradient(seed, amp * 38.283687591552734375d, freq, x, y, coord, false);
@@ -1475,7 +1467,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DoSingleDomainWarp(int seed, double amp, double freq, double x, double y, double z, Vector3 coord) {
+	private void DoSingleDomainWarp(long seed, double amp, double freq, double x, double y, double z, Vector3 coord) {
 		switch (mDomainWarpType) {
 		case OpenSimplex2:
 			SingleDomainWarpOpenSimplex2Gradient(seed, amp * 32.69428253173828125d, freq, x, y, z, coord, false);
@@ -1489,8 +1481,8 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpSingle(Vector2 coord, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private void DomainWarpSingle(Vector2 coord) {
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1513,8 +1505,8 @@ public class FastNoiseSampler {
 		DoSingleDomainWarp(seed, amp, freq, xs, ys, coord);
 	}
 
-	private void DomainWarpSingle(Vector3 coord, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private void DomainWarpSingle(Vector3 coord) {
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1555,8 +1547,8 @@ public class FastNoiseSampler {
 		DoSingleDomainWarp(seed, amp, freq, xs, ys, zs, coord);
 	}
 
-	private void DomainWarpFractalProgressive(Vector2 coord, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private void DomainWarpFractalProgressive(Vector2 coord) {
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1585,8 +1577,8 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalProgressive(Vector3 coord, int worldSeed) {
-		int seed = worldSeed + mSeed;
+	private void DomainWarpFractalProgressive(Vector3 coord) {
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1633,7 +1625,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalIndependent(Vector2 coord, int worldSeed) {
+	private void DomainWarpFractalIndependent(Vector2 coord) {
 		double xs = coord.x;
 		double ys = coord.y;
 		switch (mDomainWarpType) {
@@ -1650,7 +1642,7 @@ public class FastNoiseSampler {
 			break;
 		}
 
-		int seed = worldSeed + mSeed;
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1663,7 +1655,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalIndependent(Vector3 coord, int worldSeed) {
+	private void DomainWarpFractalIndependent(Vector3 coord) {
 		double xs = coord.x;
 		double ys = coord.y;
 		double zs = coord.z;
@@ -1698,7 +1690,7 @@ public class FastNoiseSampler {
 			break;
 		}
 
-		int seed = worldSeed + mSeed;
+		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
 
@@ -1711,7 +1703,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void SingleDomainWarpBasicGrid(int seed, double warpAmp, double frequency, double x, double y, Vector2 coord) {
+	private void SingleDomainWarpBasicGrid(long seed, double warpAmp, double frequency, double x, double y, Vector2 coord) {
 		double xf = x * frequency;
 		double yf = y * frequency;
 
@@ -1742,7 +1734,7 @@ public class FastNoiseSampler {
 		coord.y += Lerp(ly0x, ly1x, ys) * warpAmp;
 	}
 
-	private void SingleDomainWarpBasicGrid(int seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord) {
+	private void SingleDomainWarpBasicGrid(long seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord) {
 		double xf = x * frequency;
 		double yf = y * frequency;
 		double zf = z * frequency;
@@ -1799,7 +1791,7 @@ public class FastNoiseSampler {
 		coord.z += Lerp(lz0y, Lerp(lz0x, lz1x, ys), zs) * warpAmp;
 	}
 
-	private void SingleDomainWarpSimplexGradient(int seed, double warpAmp, double frequency, double x, double y, Vector2 coord, boolean outGradOnly) {
+	private void SingleDomainWarpSimplexGradient(long seed, double warpAmp, double frequency, double x, double y, Vector2 coord, boolean outGradOnly) {
 		final double SQRT3 = 1.7320508075688772935274463415059d;
 		final double G2 = (3 - SQRT3) / 6;
 
@@ -1929,7 +1921,7 @@ public class FastNoiseSampler {
 		coord.y += vy * warpAmp;
 	}
 
-	private void SingleDomainWarpOpenSimplex2Gradient(int seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord, boolean outGradOnly) {
+	private void SingleDomainWarpOpenSimplex2Gradient(long seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord, boolean outGradOnly) {
 		x *= frequency;
 		y *= frequency;
 		z *= frequency;

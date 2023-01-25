@@ -14,7 +14,7 @@ public class FrostyHeightsReverb extends StaticReverbEffect {
 
 	@Override
 	public boolean shouldIgnore(Identifier identifier) {
-		return !identifier.equals(FrostyHeightsSounds.LOOP_WIND.getId());
+		return !identifier.equals(FrostyHeightsSounds.LOOP_WIND.value().getId());
 	}
 
 	public static class Builder {

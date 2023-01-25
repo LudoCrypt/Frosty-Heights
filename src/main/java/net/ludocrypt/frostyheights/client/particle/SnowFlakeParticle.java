@@ -1,9 +1,9 @@
 package net.ludocrypt.frostyheights.client.particle;
 
+import org.quiltmc.loader.api.minecraft.ClientOnly;
+
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
 import net.minecraft.client.MinecraftClient;
@@ -32,7 +32,7 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 		this.arcStrength = MathHelper.nextDouble(this.random, 0.2D, 0.7D);
 		this.arcDeviation = MathHelper.nextDouble(this.random, -15.0D, 15.0D);
 
-		// Set velocity early so there's no meandering
+		// Set velocity early so there's no slow start
 		Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, new Vec3d(this.x, this.y, this.z));
 		Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(Math.toRadians(polar.y + arcDeviation)), polar.x * (float) Math.cos(Math.toRadians(polar.y + arcDeviation)));
 
@@ -87,7 +87,7 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 		return ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT;
 	}
 
-	@Environment(EnvType.CLIENT)
+	@ClientOnly
 	public static class Factory implements ParticleFactory<DefaultParticleType> {
 		private final SpriteProvider spriteProvider;
 

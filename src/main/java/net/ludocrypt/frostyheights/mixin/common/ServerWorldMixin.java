@@ -18,20 +18,20 @@ import net.ludocrypt.frostyheights.access.WeatherManagerAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherData;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
+import net.minecraft.registry.Holder;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListener;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Holder;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.ServerWorldProperties;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.Spawner;
-import net.minecraft.world.level.ServerWorldProperties;
-import net.minecraft.world.level.storage.LevelStorage;
+import net.minecraft.world.storage.WorldSaveStorage;
 
 /**
  * 
@@ -52,7 +52,7 @@ public abstract class ServerWorldMixin extends World implements WeatherManagerAc
 	}
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void frostyHeights$init(MinecraftServer minecraftServer, Executor executor, LevelStorage.Session session, ServerWorldProperties serverWorldProperties, RegistryKey<World> registryKey, DimensionOptions dimensionOptions, WorldGenerationProgressListener worldGenerationProgressListener, boolean bl, long l, List<Spawner> list, boolean bl2, CallbackInfo ci) {
+	private void frostyHeights$init(MinecraftServer server, Executor executor, WorldSaveStorage.Session session, ServerWorldProperties worldProperties, RegistryKey<World> registryKey, DimensionOptions dimensionOptions, WorldGenerationProgressListener genProgressListener, boolean debugWorld, long seed, List<Spawner> spawners, boolean shouldTickTime, CallbackInfo ci) {
 		if (this.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_KEY)) {
 			this.frostyHeightsWeatherManager = this.getPersistentStateManager().getOrCreate(nbtCompound -> FrostyHeightsWeatherManager.fromNbt(((ServerWorld) (Object) this), nbtCompound), () -> new FrostyHeightsWeatherManager(((ServerWorld) (Object) this)), "hiemal_weather");
 		}

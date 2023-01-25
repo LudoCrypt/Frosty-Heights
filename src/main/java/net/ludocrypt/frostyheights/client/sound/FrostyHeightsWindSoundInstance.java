@@ -17,7 +17,7 @@ public class FrostyHeightsWindSoundInstance extends PositionedSoundInstance impl
 	private ClientPlayerEntity player;
 
 	public FrostyHeightsWindSoundInstance(ClientPlayerEntity player) {
-		super(FrostyHeightsSounds.LOOP_WIND.getId(), SoundCategory.WEATHER, 1.0F, 1.0F, RandomGenerator.createLegacy(), true, 0, SoundInstance.AttenuationType.LINEAR, 0.0D, 0.0D, 0.0D, false);
+		super(FrostyHeightsSounds.LOOP_WIND.value().getId(), SoundCategory.WEATHER, 1.0F, 1.0F, RandomGenerator.createLegacy(), true, 0, SoundInstance.AttenuationType.LINEAR, 0.0D, 0.0D, 0.0D, false);
 		this.player = player;
 	}
 

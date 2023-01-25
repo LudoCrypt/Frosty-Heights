@@ -6,6 +6,13 @@ import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
 
 import net.ludocrypt.frostyheights.FrostyHeights;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeather.WeatherSettings;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,11 +31,15 @@ import net.minecraft.world.World;
 public class FrostyHeightsWeatherData {
 	public static final Identifier WEATHER_UPDATE_PACKET_ID = FrostyHeights.id("weather_update");
 
+	private final FastNoiseSampler amplitudeNoiseSampler = FastNoiseSampler.create(false, 0, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.BasicGrid, 70.0D);
+	private final FastNoiseSampler directionNoiseSampler = FastNoiseSampler.create(false, 1, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.005D, FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 2.0D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.OpenSimplex2Reduced, 100.0D);
+
 	private int ticksUntilNextWeather = 0;
 	private FrostyHeightsWeather currentWeather = FrostyHeightsWeather.CLEAR;
 	private FrostyHeightsWeather nextWeather = FrostyHeightsWeather.UNDETERMINED;
 
-	private long windSeed = 1337L;
+	private long amplitudeSeed = 1337L;
+	private long directionSeed = 1337L;
 
 	/* Y level for wind noise sampling */
 	private double windDelta = 0.0D;
@@ -38,8 +49,8 @@ public class FrostyHeightsWeatherData {
 
 	private FrostyHeightsWeather prevWeather = FrostyHeightsWeather.CLEAR;
 
-	private WeatherSettings weatherSettings = FrostyHeightsWeather.CLEAR.toWeatherSettings();
-	private WeatherSettings prevWeatherSettings = FrostyHeightsWeather.CLEAR.toWeatherSettings();
+	private WeatherSettings weatherSettings = FrostyHeightsWeather.CLEAR.cloneSettings();
+	private WeatherSettings prevWeatherSettings = FrostyHeightsWeather.CLEAR.cloneSettings();
 
 	public void sendToClient(World world) {
 		if (!world.isClient) {
@@ -49,7 +60,9 @@ public class FrostyHeightsWeatherData {
 			buf.writeByte((byte) this.getCurrentWeather().ordinal());
 			buf.writeByte((byte) this.getNextWeather().ordinal());
 
-			buf.writeLong(this.getWindSeed());
+			buf.writeLong(amplitudeSeed);
+			buf.writeLong(directionSeed);
+
 			buf.writeDouble(this.getWindDelta());
 
 			buf.writeDouble(this.getPrevWindDelta());
@@ -72,7 +85,12 @@ public class FrostyHeightsWeatherData {
 		data.setCurrentWeather(FrostyHeightsWeather.values()[buf.readByte()]);
 		data.setNextWeather(FrostyHeightsWeather.values()[buf.readByte()]);
 
-		data.setWindSeed(buf.readLong());
+		data.amplitudeSeed = buf.readLong();
+		data.directionSeed = buf.readLong();
+
+		data.amplitudeNoiseSampler.SetSeed(data.amplitudeSeed);
+		data.directionNoiseSampler.SetSeed(data.directionSeed);
+
 		data.setWindDelta(buf.readDouble());
 
 		data.setPrevWindDelta(buf.readDouble());
@@ -92,13 +110,18 @@ public class FrostyHeightsWeatherData {
 		data.setCurrentWeather(FrostyHeightsWeather.values()[nbt.getByte("currentWeather")]);
 		data.setNextWeather(FrostyHeightsWeather.values()[nbt.getByte("nextWeather")]);
 
-		data.setWindSeed(nbt.getLong("windSeed"));
+		data.amplitudeSeed = nbt.getLong("amplitudeSeed");
+		data.directionSeed = nbt.getLong("directionSeed");
+
+		data.amplitudeNoiseSampler.SetSeed(data.amplitudeSeed);
+		data.directionNoiseSampler.SetSeed(data.directionSeed);
+
 		data.setWindDelta(nbt.getDouble("windDelta"));
 
 		data.setNextWeather(data.getCurrentWeather());
 
-		data.setWeatherSettings(data.getCurrentWeather().toWeatherSettings());
-		data.setPrevWeatherSettings(data.getCurrentWeather().toWeatherSettings());
+		data.setWeatherSettings(data.getCurrentWeather().cloneSettings());
+		data.setPrevWeatherSettings(data.getCurrentWeather().cloneSettings());
 
 		return data;
 	}
@@ -109,7 +132,9 @@ public class FrostyHeightsWeatherData {
 		nbt.putByte("currentWeather", (byte) manager.getCurrentWeather().ordinal());
 		nbt.putByte("nextWeather", (byte) manager.getNextWeather().ordinal());
 
-		nbt.putLong("windSeed", manager.getWindSeed());
+		nbt.putLong("amplitudeSeed", manager.amplitudeSeed);
+		nbt.putLong("directionSeed", manager.directionSeed);
+
 		nbt.putDouble("windDelta", manager.getWindDelta());
 
 		return nbt;
@@ -120,7 +145,12 @@ public class FrostyHeightsWeatherData {
 		this.setCurrentWeather(data.getCurrentWeather());
 		this.setNextWeather(data.getNextWeather());
 
-		this.setWindSeed(data.getWindSeed());
+		this.amplitudeSeed = data.amplitudeSeed;
+		this.directionSeed = data.directionSeed;
+
+		this.amplitudeNoiseSampler.SetSeed(data.amplitudeSeed);
+		this.directionNoiseSampler.SetSeed(data.directionSeed);
+
 		this.setWindDelta(data.getWindDelta());
 
 		this.setPrevWindDelta(data.getPrevWindDelta());
@@ -152,7 +182,11 @@ public class FrostyHeightsWeatherData {
 	}
 
 	public double getWindVelocity(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindVelocity(), this.getWeatherSettings().getWindVelocity()) / 5.0D;
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindVelocity(), this.getWeatherSettings().getWindVelocity());
+	}
+
+	public double getWindPushStrength(float tickDelta) {
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindPushStrength(), this.getWeatherSettings().getWindPushStrength());
 	}
 
 	public double getVibratoAmplitude(float tickDelta) {
@@ -191,10 +225,6 @@ public class FrostyHeightsWeatherData {
 		return this.ticksUntilNextWeather;
 	}
 
-	public long getWindSeed() {
-		return this.windSeed;
-	}
-
 	public double getWindDelta() {
 		return this.windDelta;
 	}
@@ -211,6 +241,14 @@ public class FrostyHeightsWeatherData {
 		return this.prevWeatherSettings;
 	}
 
+	public FastNoiseSampler getAmplitudeNoiseSampler() {
+		return amplitudeNoiseSampler;
+	}
+
+	public FastNoiseSampler getDirectionNoiseSampler() {
+		return directionNoiseSampler;
+	}
+
 	public void setPrevWeather(FrostyHeightsWeather prevWeather) {
 		this.prevWeather = prevWeather;
 	}
@@ -225,10 +263,6 @@ public class FrostyHeightsWeatherData {
 
 	public void setTicksUntilNextWeather(int ticks) {
 		this.ticksUntilNextWeather = ticks;
-	}
-
-	public void setWindSeed(long windSeed) {
-		this.windSeed = windSeed;
 	}
 
 	public void setWindDelta(double windDelta) {

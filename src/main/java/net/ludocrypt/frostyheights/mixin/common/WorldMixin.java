@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherData;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 
 /**

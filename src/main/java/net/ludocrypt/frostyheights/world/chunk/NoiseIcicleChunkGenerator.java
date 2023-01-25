@@ -1,14 +1,12 @@
 package net.ludocrypt.frostyheights.world.chunk;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.Lifecycle;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
@@ -20,16 +18,15 @@ import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
+import net.ludocrypt.limlib.registry.registration.LimlibWorld.RegistryProvider;
 import net.ludocrypt.limlib.world.chunk.LiminalChunkGenerator;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ChunkHolder.Unloaded;
 import net.minecraft.server.world.ServerLightingProvider;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.BuiltinRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap.Type;
@@ -39,7 +36,6 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.gen.RandomState;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.structure.StructureSet;
 
 public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 
@@ -97,8 +93,8 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	public final double wastelandsHeight;
 	public final double wastelandsScale;
 
-	public static NoiseIcicleChunkGenerator getHiemal() {
-		return getHiemalDefaultFastNoise(new FixedBiomeSource(BuiltinRegistries.BIOME.m_pselvvxn(FrostyHeightsBiomes.HIEMAL_BARRENS)), 0.125D, -0.8D, 5.0D, 5.0D, 384.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D);
+	public static NoiseIcicleChunkGenerator getHiemal(RegistryProvider registry) {
+		return getHiemalDefaultFastNoise(new FixedBiomeSource(registry.get(RegistryKeys.BIOME).getHolder(FrostyHeightsBiomes.HIEMAL_BARRENS).get()), 0.125D, -0.8D, 5.0D, 5.0D, 384.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D);
 	}
 
 	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(BiomeSource source, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
@@ -122,7 +118,7 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	}
 
 	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, NoiseIcicleSettings noiseSettings, double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
-		super(new SimpleRegistry<StructureSet>(Registry.STRUCTURE_SET_WORLDGEN, Lifecycle.stable(), null), Optional.empty(), biomeSource);
+		super(biomeSource);
 		this.biomeSource = biomeSource;
 		this.noiseSettings = noiseSettings;
 		this.pokeThreshold = pokeThreshold;
@@ -151,7 +147,7 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 					int z = (chunk.getPos().getStartZ() + iz);
 					for (int iy = 0; iy < chunk.getHeight(); iy++) {
 						int y = chunk.getBottomY() + iy;
-						sampleHeight(chunk, x, y, z, Long.hashCode(chunkRegion.getSeed()), () -> chunk.setBlockState(new BlockPos(x, y, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false));
+						sampleHeight(chunk, x, y, z, () -> chunk.setBlockState(new BlockPos(x, y, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false));
 					}
 				}
 			}
@@ -163,7 +159,7 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	public int getHeight(int x, int z, Type heightmap, HeightLimitView world, RandomState randomState) {
 		int height = world.getBottomY();
 		for (int y = world.getTopY(); y > world.getBottomY(); y--) {
-			int h = sampleHeight(world, x, y, z, Long.hashCode(randomState.getLegacyWorldSeed()));
+			int h = sampleHeight(world, x, y, z);
 			if (h > height) {
 				return h;
 			}
@@ -171,19 +167,19 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 		return height;
 	}
 
-	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed) {
-		return sampleHeight(world, x, y, z, worldSeed, () -> {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z) {
+		return sampleHeight(world, x, y, z, () -> {
 		});
 	}
 
-	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed, Runnable function) {
-		return sampleHeight(world, x, y, z, worldSeed, function, () -> {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z, Runnable function) {
+		return sampleHeight(world, x, y, z, function, () -> {
 		});
 	}
 
-	public int sampleHeight(HeightLimitView world, int x, int y, int z, int worldSeed, Runnable function, Runnable function2) {
+	public int sampleHeight(HeightLimitView world, int x, int y, int z, Runnable function, Runnable function2) {
 		int topBlock = world.getBottomY();
-		if (isInNoise(x, y, z, world.getBottomY(), world.getTopY(), worldSeed)) {
+		if (isInNoise(x, y, z, world.getBottomY(), world.getTopY())) {
 			if (y > topBlock) {
 				topBlock = y;
 			}
@@ -194,23 +190,23 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 		return topBlock;
 	}
 
-	public double getNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
+	public double getNoiseAt(int x, int iy, int z, double bottom, double top) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.noiseSettings.cellNoise.GetNoise((x - (this.noiseSettings.translateXNoise.GetNoise(x, y, z, worldSeed) * Math.pow(this.translateXScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateXScale, 1.5D), (double) y * Math.pow(this.translateXScale, 1.5D), (double) z * Math.pow(this.translateXScale, 1.5D), worldSeed) * this.translateZScale), (z - (this.noiseSettings.translateZNoise.GetNoise(x, y, z, worldSeed) * Math.pow(this.translateZScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateZScale, 1.5D), (double) y * Math.pow(this.translateZScale, 1.5D), (double) z * Math.pow(this.translateZScale, 1.5D), worldSeed) * this.translateZScale), worldSeed);
+		return this.noiseSettings.cellNoise.GetNoise((x - (this.noiseSettings.translateXNoise.GetNoise(x, y, z) * Math.pow(this.translateXScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateXScale, 1.5D), (double) y * Math.pow(this.translateXScale, 1.5D), (double) z * Math.pow(this.translateXScale, 1.5D)) * this.translateZScale), (z - (this.noiseSettings.translateZNoise.GetNoise(x, y, z) * Math.pow(this.translateZScale, 2))) - (this.noiseSettings.refineXNoise.GetNoise((double) x * Math.pow(this.translateZScale, 1.5D), (double) y * Math.pow(this.translateZScale, 1.5D), (double) z * Math.pow(this.translateZScale, 1.5D)) * this.translateZScale));
 	}
 
-	public double getPokeNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
+	public double getPokeNoiseAt(int x, int iy, int z, double bottom, double top) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.noiseSettings.pokeNoise.GetNoise(x, y, z, worldSeed);
+		return this.noiseSettings.pokeNoise.GetNoise(x, y, z);
 	}
 
-	public double getSpaghettiPokeNoiseAt(int x, int iy, int z, double bottom, double top, int worldSeed) {
+	public double getSpaghettiPokeNoiseAt(int x, int iy, int z, double bottom, double top) {
 		double y = calculateScaledY(iy, bottom, top);
-		return this.noiseSettings.spaghettiPokeNoise.GetNoise(x, y, z, worldSeed);
+		return this.noiseSettings.spaghettiPokeNoise.GetNoise(x, y, z);
 	}
 
-	public boolean isInNoise(int x, int y, int z, double bottom, double top, int worldSeed) {
-		return isInNoise(y, getNoiseAt(x, y, z, bottom, top, worldSeed), getPokeNoiseAt(x, y, z, bottom, top, worldSeed), getSpaghettiPokeNoiseAt(x, y, z, bottom, top, worldSeed), bottom, top);
+	public boolean isInNoise(int x, int y, int z, double bottom, double top) {
+		return isInNoise(y, getNoiseAt(x, y, z, bottom, top), getPokeNoiseAt(x, y, z, bottom, top), getSpaghettiPokeNoiseAt(x, y, z, bottom, top), bottom, top);
 	}
 
 	public boolean isInNoise(int iy, double n, double pn, double spn, double bottom, double top) {
