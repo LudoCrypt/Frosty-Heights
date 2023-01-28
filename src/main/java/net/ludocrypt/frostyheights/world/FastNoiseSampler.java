@@ -256,7 +256,7 @@ public class FastNoiseSampler {
 		mDomainWarpAmp = domainWarpAmp;
 	}
 
-	public double GetNoise(double x, double y) {
+	public double GetNoise(double x, double y, long eSeed) {
 
 		x *= mFrequency;
 		y *= mFrequency;
@@ -277,17 +277,17 @@ public class FastNoiseSampler {
 
 		switch (mFractalType) {
 		default:
-			return invert ? -GenNoiseSingle(mSeed, x, y) : GenNoiseSingle(mSeed, x, y);
+			return invert ? -GenNoiseSingle(mSeed + eSeed, x, y) : GenNoiseSingle(mSeed + eSeed, x, y);
 		case FBm:
-			return invert ? -GenFractalFBm(x, y) : GenFractalFBm(x, y);
+			return invert ? -GenFractalFBm(x, y, eSeed) : GenFractalFBm(x, y, eSeed);
 		case Ridged:
-			return invert ? -GenFractalRidged(x, y) : GenFractalRidged(x, y);
+			return invert ? -GenFractalRidged(x, y, eSeed) : GenFractalRidged(x, y, eSeed);
 		case PingPong:
-			return invert ? -GenFractalPingPong(x, y) : GenFractalPingPong(x, y);
+			return invert ? -GenFractalPingPong(x, y, eSeed) : GenFractalPingPong(x, y, eSeed);
 		}
 	}
 
-	public double GetNoise(double x, double y, double z) {
+	public double GetNoise(double x, double y, double z, long eSeed) {
 		x *= mFrequency;
 		y *= mFrequency;
 		z *= mFrequency;
@@ -325,40 +325,40 @@ public class FastNoiseSampler {
 
 		switch (mFractalType) {
 		default:
-			return invert ? -GenNoiseSingle(mSeed, x, y, z) : GenNoiseSingle(mSeed, x, y, z);
+			return invert ? -GenNoiseSingle(mSeed + eSeed, x, y, z) : GenNoiseSingle(mSeed + eSeed, x, y, z);
 		case FBm:
-			return invert ? -GenFractalFBm(x, y, z) : GenFractalFBm(x, y, z);
+			return invert ? -GenFractalFBm(x, y, z, eSeed) : GenFractalFBm(x, y, z, eSeed);
 		case Ridged:
-			return invert ? -GenFractalRidged(x, y, z) : GenFractalRidged(x, y, z);
+			return invert ? -GenFractalRidged(x, y, z, eSeed) : GenFractalRidged(x, y, z, eSeed);
 		case PingPong:
-			return invert ? -GenFractalPingPong(x, y, z) : GenFractalPingPong(x, y, z);
+			return invert ? -GenFractalPingPong(x, y, z, eSeed) : GenFractalPingPong(x, y, z, eSeed);
 		}
 	}
 
-	public void DomainWarp(Vector2 coord) {
+	public void DomainWarp(Vector2 coord, long eSeed) {
 		switch (mFractalType) {
 		default:
-			DomainWarpSingle(coord);
+			DomainWarpSingle(coord, eSeed);
 			break;
 		case DomainWarpProgressive:
-			DomainWarpFractalProgressive(coord);
+			DomainWarpFractalProgressive(coord, eSeed);
 			break;
 		case DomainWarpIndependent:
-			DomainWarpFractalIndependent(coord);
+			DomainWarpFractalIndependent(coord, eSeed);
 			break;
 		}
 	}
 
-	public void DomainWarp(Vector3 coord) {
+	public void DomainWarp(Vector3 coord, long eSeed) {
 		switch (mFractalType) {
 		default:
-			DomainWarpSingle(coord);
+			DomainWarpSingle(coord, eSeed);
 			break;
 		case DomainWarpProgressive:
-			DomainWarpFractalProgressive(coord);
+			DomainWarpFractalProgressive(coord, eSeed);
 			break;
 		case DomainWarpIndependent:
-			DomainWarpFractalIndependent(coord);
+			DomainWarpFractalIndependent(coord, eSeed);
 			break;
 		}
 	}
@@ -565,8 +565,8 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private double GenFractalFBm(double x, double y) {
-		long seed = mSeed;
+	private double GenFractalFBm(double x, double y, long eSeed) {
+		long seed = mSeed + eSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -583,8 +583,8 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalFBm(double x, double y, double z) {
-		long seed = mSeed;
+	private double GenFractalFBm(double x, double y, double z, long eSeed) {
+		long seed = mSeed + eSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
 
@@ -602,7 +602,7 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalRidged(double x, double y) {
+	private double GenFractalRidged(double x, double y, long eSeed) {
 		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
@@ -620,7 +620,7 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalRidged(double x, double y, double z) {
+	private double GenFractalRidged(double x, double y, double z, long eSeed) {
 		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
@@ -639,7 +639,7 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalPingPong(double x, double y) {
+	private double GenFractalPingPong(double x, double y, long eSeed) {
 		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
@@ -657,7 +657,7 @@ public class FastNoiseSampler {
 		return sum;
 	}
 
-	private double GenFractalPingPong(double x, double y, double z) {
+	private double GenFractalPingPong(double x, double y, double z, long eSeed) {
 		long seed = mSeed;
 		double sum = 0;
 		double amp = mFractalBounding;
@@ -1481,7 +1481,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpSingle(Vector2 coord) {
+	private void DomainWarpSingle(Vector2 coord, long eSeed) {
 		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
@@ -1505,7 +1505,7 @@ public class FastNoiseSampler {
 		DoSingleDomainWarp(seed, amp, freq, xs, ys, coord);
 	}
 
-	private void DomainWarpSingle(Vector3 coord) {
+	private void DomainWarpSingle(Vector3 coord, long eSeed) {
 		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
@@ -1547,7 +1547,7 @@ public class FastNoiseSampler {
 		DoSingleDomainWarp(seed, amp, freq, xs, ys, zs, coord);
 	}
 
-	private void DomainWarpFractalProgressive(Vector2 coord) {
+	private void DomainWarpFractalProgressive(Vector2 coord, long eSeed) {
 		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
@@ -1577,7 +1577,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalProgressive(Vector3 coord) {
+	private void DomainWarpFractalProgressive(Vector3 coord, long eSeed) {
 		long seed = mSeed;
 		double amp = mDomainWarpAmp * mFractalBounding;
 		double freq = mFrequency;
@@ -1625,7 +1625,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalIndependent(Vector2 coord) {
+	private void DomainWarpFractalIndependent(Vector2 coord, long eSeed) {
 		double xs = coord.x;
 		double ys = coord.y;
 		switch (mDomainWarpType) {
@@ -1655,7 +1655,7 @@ public class FastNoiseSampler {
 		}
 	}
 
-	private void DomainWarpFractalIndependent(Vector3 coord) {
+	private void DomainWarpFractalIndependent(Vector3 coord, long eSeed) {
 		double xs = coord.x;
 		double ys = coord.y;
 		double zs = coord.z;

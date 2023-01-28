@@ -31,7 +31,7 @@ public class FrostyHeightsClient implements ClientModInitializer {
 	}
 
 	public static boolean renderWindVisualization() {
-		return true;
+		return false;
 	}
 
 }

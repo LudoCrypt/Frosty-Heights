@@ -1,6 +1,8 @@
 package net.ludocrypt.frostyheights.world.biome;
 
+import net.ludocrypt.frostyheights.access.BiomeNoiseIcicleShapeAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsSounds;
+import net.ludocrypt.frostyheights.world.chunk.NoiseIcicleChunkGenerator.NoiseIcicleShape;
 import net.minecraft.registry.HolderProvider;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
@@ -36,7 +38,12 @@ public class HiemalBarrensBiome {
 		biome.temperature(-1.0F);
 		biome.downfall(0.0F);
 
-		return biome.build();
+		Biome builtBiome = biome.build();
+
+		NoiseIcicleShape icicleShape = new NoiseIcicleShape(0.125D, -0.8D, 5.0D, 5.0D, 1.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D);
+		((BiomeNoiseIcicleShapeAccess) (Object) builtBiome).setNoiseIcicleShape(icicleShape);
+
+		return builtBiome;
 	}
 
 }

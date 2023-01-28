@@ -1,6 +1,13 @@
 package net.ludocrypt.frostyheights.weather;
 
 import net.ludocrypt.frostyheights.access.WeatherAccess;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
+import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
@@ -20,12 +27,17 @@ import net.minecraft.world.World;
  */
 public class FrostyHeightsWeatherManager extends PersistentState {
 
+	public static final FastNoiseSampler AMPLITUDE_SAMPLER = FastNoiseSampler.create(false, 0, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.BasicGrid, 70.0D);
+	public static final FastNoiseSampler DIRECTION_SAMPLER = FastNoiseSampler.create(false, 1, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.005D, FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 2.0D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.OpenSimplex2Reduced, 100.0D);
+
 	private final ServerWorld world;
 
 	private final FrostyHeightsWeatherData weatherData;
 
 	public FrostyHeightsWeatherManager(ServerWorld world) {
 		this(world, new FrostyHeightsWeatherData());
+		weatherData.setAmplitudeSeed(world.getRandom().nextLong());
+		weatherData.setDirectionSeed(world.getRandom().nextLong());
 	}
 
 	public FrostyHeightsWeatherManager(ServerWorld world, FrostyHeightsWeatherData weatherData) {
@@ -144,8 +156,8 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 
 	public static Vec2f getWindPolar(World world, Vec3d pos, float tickDelta) {
 		double windDelta = ((WeatherAccess) (world)).getWeatherData().getWindDelta();
-		double amplitude = MathHelper.clamp((((WeatherAccess) (world)).getWeatherData().getAmplitudeNoiseSampler().GetNoise(pos.getX(), windDelta, pos.getZ()) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(1.0F), 0.0D, 1.0D);
-		double theta = ((WeatherAccess) (world)).getWeatherData().getDirectionNoiseSampler().GetNoise(pos.getX(), windDelta, pos.getZ()) * 360.0D;
+		double amplitude = MathHelper.clamp((AMPLITUDE_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), ((WeatherAccess) (world)).getWeatherData().getAmplitudeSeed()) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(1.0F), 0.0D, 1.0D);
+		double theta = DIRECTION_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), ((WeatherAccess) (world)).getWeatherData().getDirectionSeed()) * 360.0D;
 
 		amplitude *= getScalingFactor(pos.getY());
 		amplitude = MathHelper.clamp(amplitude, getMinimumWind(pos.getY()), 1.0D);
