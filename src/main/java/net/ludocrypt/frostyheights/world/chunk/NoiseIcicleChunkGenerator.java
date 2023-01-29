@@ -38,6 +38,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.gen.DensityFunction;
 import net.minecraft.world.gen.DensityFunction.SinglePointContext;
+import net.minecraft.world.gen.DensityFunctions;
 import net.minecraft.world.gen.RandomState;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
@@ -80,7 +81,26 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 				/* Poke Noise */
 				FastNoiseSampler.create(true, 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D),
 				/* Spaghetti Poke Noise */
-				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)), new NoiseIcicleShapeSamplers(null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)),
+				
+				new NoiseIcicleShapeSamplers(
+
+						DensityFunctions.constant(0.125D),
+						DensityFunctions.constant(-0.8D),
+						DensityFunctions.constant(5.0D),
+						DensityFunctions.constant(5.0D),
+						DensityFunctions.constant(1.0D),
+						DensityFunctions.constant(1.0D),
+						DensityFunctions.constant(1.0D),
+						DensityFunctions.constant(1.0D),
+						DensityFunctions.constant(1.0D),
+						DensityFunctions.constant(0.0D),
+						DensityFunctions.constant(137.0D), 
+						DensityFunctions.constant(215.0D),
+						DensityFunctions.constant(265.0D),
+						DensityFunctions.constant(10.0D)
+
+						));
 	}
 
 	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, ChunkGeneratorSettings generatorSettings, NoiseIcicleSamplers icicleSamplers, NoiseIcicleShapeSamplers icicleShape) {
@@ -279,18 +299,20 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 		public final DensityFunction sparsityXScale;
 		public final DensityFunction sparsityZScale;
 
-		/* Scale Icicle sizes */
+		/* Scale Icicle height */
 		public final DensityFunction totalHeightScale;
 
 		/* Shift Icicles up/down */
 		public final DensityFunction totalHeightShift;
 
-		/* Icicles (bottom of the hiemal) */
+		/* Shift Icicles up/down */
 		public final DensityFunction icicleHeight;
+		/* Vertical Scale of the Icicles */
 		public final DensityFunction icicleScale;
 
-		/* Wastelands (top of the hiemal) */
+		/* Shift Ceiling up/down */
 		public final DensityFunction wastelandsHeight;
+		/* Vertical Scale of the Ceiling */
 		public final DensityFunction wastelandsScale;
 
 		public NoiseIcicleShapeSamplers(DensityFunction pokeThreshold, DensityFunction spaghettiPokeThreshold, DensityFunction translateXScale, DensityFunction translateZScale, DensityFunction densityXScale, DensityFunction densityZScale, DensityFunction sparsityXScale, DensityFunction sparsityZScale, DensityFunction totalHeightScale, DensityFunction totalHeightShift, DensityFunction icicleHeight, DensityFunction icicleScale, DensityFunction wastelandsHeight, DensityFunction wastelandsScale) {
