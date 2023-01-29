@@ -9,10 +9,9 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.ludocrypt.frostyheights.access.BiomeNoiseIcicleShapeAccess;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
-import net.ludocrypt.frostyheights.util.QueueHashMap;
+import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
 import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
@@ -27,7 +26,6 @@ import net.minecraft.server.world.ChunkHolder.Unloaded;
 import net.minecraft.server.world.ServerLightingProvider;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplateManager;
-import net.minecraft.util.CuboidBlockIterator;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkRegion;
@@ -38,31 +36,37 @@ import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.FixedBiomeSource;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.world.gen.DensityFunction;
+import net.minecraft.world.gen.DensityFunction.SinglePointContext;
 import net.minecraft.world.gen.RandomState;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 
 public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 
 	public static final Codec<NoiseIcicleChunkGenerator> CODEC = RecordCodecBuilder.create((instance) -> {
 		return instance.group(BiomeSource.CODEC.fieldOf("biome_source").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.biomeSource;
+		}), ChunkGeneratorSettings.CODEC.fieldOf("generator_settings").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.generatorSettings;
 		}), NoiseIcicleSamplers.CODEC.fieldOf("icicle_samplers").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.icicleSamplers;
+		}), NoiseIcicleShapeSamplers.CODEC.fieldOf("icicle_shape_samplers").stable().forGetter((chunkGenerator) -> {
+			return chunkGenerator.icicleShapeSamplers;
 		})).apply(instance, instance.stable(NoiseIcicleChunkGenerator::new));
 	});
 
 	public final BiomeSource biomeSource;
+	public final ChunkGeneratorSettings generatorSettings;
 	public final NoiseIcicleSamplers icicleSamplers;
-
-	private static final QueueHashMap<BlockPos, NoiseIcicleShape> ICICLE_SHAPES = new QueueHashMap<BlockPos, NoiseIcicleShape>(32768, 4096);
-	private static final QueueHashMap<BlockPos, NoiseIcicleShape> BLENDED_ICICLE_SHAPES = new QueueHashMap<BlockPos, NoiseIcicleShape>(32768, 4096);
+	public final NoiseIcicleShapeSamplers icicleShapeSamplers;
 
 	public static NoiseIcicleChunkGenerator getHiemal(RegistryProvider registry) {
-		return getHiemalDefaultFastNoise(new FixedBiomeSource(registry.get(RegistryKeys.BIOME).getHolder(FrostyHeightsBiomes.HIEMAL_BARRENS).get()));
+		return getHiemalDefaultFastNoise(registry, new FixedBiomeSource(registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_BARRENS)));
 	}
 
-	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(BiomeSource source) {
-		return new NoiseIcicleChunkGenerator(source, new NoiseIcicleSamplers(
+	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(RegistryProvider registry, BiomeSource source) {
+		return new NoiseIcicleChunkGenerator(source, registry.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS).getHolderOrThrow(FrostyHeightsWorld.THE_HIEMAL_GENERATOR_SETTINGS).value(), new NoiseIcicleSamplers(
 				/* Cell Noise */
 				FastNoiseSampler.create(true, 1, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.007D, FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D, DomainWarpType.OpenSimplex2, 60.0D),
 				/* Translate X Noise */
@@ -76,13 +80,15 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 				/* Poke Noise */
 				FastNoiseSampler.create(true, 6, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.FBm, 4, 1.5D, 1.0D, 0.5D, 0.0D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D, DomainWarpType.OpenSimplex2, -60.0D),
 				/* Spaghetti Poke Noise */
-				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)));
+				FastNoiseSampler.create(false, 7, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 0.03D, FractalType.PingPong, 6, 0.0D, 0.0D, 0.0D, 3.2D, CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D, DomainWarpType.OpenSimplex2Reduced, 25.0D)), new NoiseIcicleShapeSamplers(null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 	}
 
-	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, NoiseIcicleSamplers icicleSamplers) {
+	public NoiseIcicleChunkGenerator(BiomeSource biomeSource, ChunkGeneratorSettings generatorSettings, NoiseIcicleSamplers icicleSamplers, NoiseIcicleShapeSamplers icicleShape) {
 		super(biomeSource);
+		this.generatorSettings = generatorSettings;
 		this.biomeSource = biomeSource;
 		this.icicleSamplers = icicleSamplers;
+		this.icicleShapeSamplers = icicleShape;
 	}
 
 	@Override
@@ -136,41 +142,33 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	}
 
 	public double getNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top);
-		double translateXScale = sampleTranslateXScale(world, x, z);
-		double translateZScale = sampleTranslateZScale(world, x, z);
-		return this.icicleSamplers.cellNoise.GetNoise((x - (this.icicleSamplers.translateXNoise.GetNoise(x, y, z, seed) * Math.pow(translateXScale, 2))) - (this.icicleSamplers.refineXNoise.GetNoise((double) x * Math.pow(translateXScale, 1.5D), (double) y * Math.pow(translateXScale, 1.5D), (double) z * Math.pow(translateXScale, 1.5D), seed) * translateZScale), (z - (this.icicleSamplers.translateZNoise.GetNoise(x, y, z, seed) * Math.pow(translateZScale, 2))) - (this.icicleSamplers.refineXNoise.GetNoise((double) x * Math.pow(translateZScale, 1.5D), (double) y * Math.pow(translateZScale, 1.5D), (double) z * Math.pow(translateZScale, 1.5D), seed) * translateZScale), seed);
+		double y = calculateScaledY(world, x, iy, z, bottom, top, seed);
+		return this.icicleSamplers.cellNoise.GetNoise((((double) x * icicleShapeSamplers.densityXScale.compute(new SinglePointContext(x, iy, z)) / icicleShapeSamplers.sparsityXScale.compute(new SinglePointContext(x, iy, z))) - (this.icicleSamplers.translateXNoise.GetNoise(x, y, z, seed) * Math.pow(icicleShapeSamplers.translateXScale.compute(new SinglePointContext(x, iy, z)), 2))) - (this.icicleSamplers.refineXNoise.GetNoise((double) x * Math.pow(icicleShapeSamplers.translateXScale.compute(new SinglePointContext(x, iy, z)), 1.5D), (double) y * Math.pow(icicleShapeSamplers.translateXScale.compute(new SinglePointContext(x, iy, z)), 1.5D), (double) z * Math.pow(icicleShapeSamplers.translateXScale.compute(new SinglePointContext(x, iy, z)), 1.5D), seed) * icicleShapeSamplers.translateXScale.compute(new SinglePointContext(x, iy, z))), (icicleShapeSamplers.densityXScale.compute(new SinglePointContext(x, iy, z)) + icicleShapeSamplers.densityZScale.compute(new SinglePointContext(x, iy, z)) + icicleShapeSamplers.sparsityXScale.compute(new SinglePointContext(x, iy, z)) + icicleShapeSamplers.sparsityZScale.compute(new SinglePointContext(x, iy, z))) * 30.0D, (((double) z * icicleShapeSamplers.densityZScale.compute(new SinglePointContext(x, iy, z)) / icicleShapeSamplers.sparsityZScale.compute(new SinglePointContext(x, iy, z))) - (this.icicleSamplers.translateZNoise.GetNoise(x, y, z, seed) * Math.pow(icicleShapeSamplers.translateZScale.compute(new SinglePointContext(x, iy, z)), 2))) - (this.icicleSamplers.refineZNoise.GetNoise((double) x * Math.pow(icicleShapeSamplers.translateZScale.compute(new SinglePointContext(x, iy, z)), 1.5D), (double) y * Math.pow(icicleShapeSamplers.translateZScale.compute(new SinglePointContext(x, iy, z)), 1.5D), (double) z * Math.pow(icicleShapeSamplers.translateZScale.compute(new SinglePointContext(x, iy, z)), 1.5D), seed) * icicleShapeSamplers.translateZScale.compute(new SinglePointContext(x, iy, z))), seed);
 	}
 
 	public double getPokeNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top);
+		double y = calculateScaledY(world, x, iy, z, bottom, top, seed);
 		return this.icicleSamplers.pokeNoise.GetNoise(x, y, z, seed);
 	}
 
 	public double getSpaghettiPokeNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top);
+		double y = calculateScaledY(world, x, iy, z, bottom, top, seed);
 		return this.icicleSamplers.spaghettiPokeNoise.GetNoise(x, y, z, seed);
 	}
 
 	public boolean isInNoise(WorldView world, int x, int y, int z, double bottom, double top, long seed) {
-		return isInNoise(world, x, y, z, getNoiseAt(world, x, y, z, bottom, top, seed), getPokeNoiseAt(world, x, y, z, bottom, top, seed), getSpaghettiPokeNoiseAt(world, x, y, z, bottom, top, seed), bottom, top);
+		return isInNoise(world, x, y, z, getNoiseAt(world, x, y, z, bottom, top, seed), getPokeNoiseAt(world, x, y, z, bottom, top, seed), getSpaghettiPokeNoiseAt(world, x, y, z, bottom, top, seed), bottom, top, seed);
 	}
 
-	public boolean isInNoise(WorldView world, int x, int iy, int z, double n, double pn, double spn, double bottom, double top) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top);
-		double icicleScale = sampleIcicleScale(world, x, z);
-		double icicleHeight = sampleIcicleHeight(world, x, z);
-		double wastelandsScale = sampleWastelandsScale(world, x, z);
-		double wastelandsHeight = sampleWastelandsHeight(world, x, z);
-		double pokeThreshold = samplePokeThreshold(world, x, z);
-		double spaghettiPokeThreshold = sampleSpaghettiPokeThreshold(world, x, z);
-		return (n > -((y - icicleScale - icicleHeight) / icicleScale) && n > ((y + wastelandsScale - wastelandsHeight) / (wastelandsScale))) && (pn < pokeThreshold) && (spn > spaghettiPokeThreshold);
+	public boolean isInNoise(WorldView world, int x, int iy, int z, double n, double pn, double spn, double bottom, double top, long seed) {
+		double y = calculateScaledY(world, x, iy, z, bottom, top, seed);
+		return (n > -((y - icicleShapeSamplers.icicleScale.compute(new SinglePointContext(x, iy, z)) - icicleShapeSamplers.icicleHeight.compute(new SinglePointContext(x, iy, z))) / icicleShapeSamplers.icicleScale.compute(new SinglePointContext(x, iy, z))) && n > ((y + icicleShapeSamplers.wastelandsScale.compute(new SinglePointContext(x, iy, z)) - icicleShapeSamplers.wastelandsHeight.compute(new SinglePointContext(x, iy, z))) / (icicleShapeSamplers.wastelandsScale.compute(new SinglePointContext(x, iy, z))))) && (pn < icicleShapeSamplers.pokeThreshold.compute(new SinglePointContext(x, iy, z))) && (spn > icicleShapeSamplers.spaghettiPokeThreshold.compute(new SinglePointContext(x, iy, z)));
 	}
 
-	public double calculateScaledY(WorldView world, int x, int iy, int z, double bottom, double top) {
+	public double calculateScaledY(WorldView world, int x, int iy, int z, double bottom, double top, long seed) {
 		double y = iy;
-		y *= sampleTotalHeightScale(world, x, z);
-		y += sampleTotalHeightShift(world, x, z);
+		y *= icicleShapeSamplers.totalHeightScale.compute(new SinglePointContext(x, iy, z));
+		y += icicleShapeSamplers.totalHeightShift.compute(new SinglePointContext(x, iy, z));
 		return y;
 	}
 
@@ -229,62 +227,81 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 			this.pokeNoise = pokeNoise;
 			this.spaghettiPokeNoise = spaghettiPokeNoise;
 		}
+
 	}
 
-	public static class NoiseIcicleShape {
-		public static final Codec<NoiseIcicleShape> CODEC = RecordCodecBuilder.create((instance) -> {
-			return instance.group(Codec.DOUBLE.fieldOf("poke_threshold").stable().forGetter((chunkGenerator) -> {
+	public static class NoiseIcicleShapeSamplers {
+		public static final Codec<NoiseIcicleShapeSamplers> CODEC = RecordCodecBuilder.create((instance) -> {
+			return instance.group(DensityFunction.DIRECT_CODEC.fieldOf("poke_threshold").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.pokeThreshold;
-			}), Codec.DOUBLE.fieldOf("spaghetti_poke_threshold").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("spaghetti_poke_threshold").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.spaghettiPokeThreshold;
-			}), Codec.DOUBLE.fieldOf("translate_x_scale").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("translate_x_scale").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.translateXScale;
-			}), Codec.DOUBLE.fieldOf("translate_z_scale").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("translate_z_scale").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.translateZScale;
-			}), Codec.DOUBLE.fieldOf("total_height_scale").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("density_x_scale").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.densityXScale;
+			}), DensityFunction.DIRECT_CODEC.fieldOf("density_z_scale").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.densityXScale;
+			}), DensityFunction.DIRECT_CODEC.fieldOf("sparsity_x_scale").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.sparsityXScale;
+			}), DensityFunction.DIRECT_CODEC.fieldOf("sparsity_z_scale").stable().forGetter((chunkGenerator) -> {
+				return chunkGenerator.sparsityXScale;
+			}), DensityFunction.DIRECT_CODEC.fieldOf("total_height_scale").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.totalHeightScale;
-			}), Codec.DOUBLE.fieldOf("total_height_shift").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("total_height_shift").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.totalHeightShift;
-			}), Codec.DOUBLE.fieldOf("icicle_height").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("icicle_height").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.icicleHeight;
-			}), Codec.DOUBLE.fieldOf("icicle_scale").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("icicle_scale").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.icicleScale;
-			}), Codec.DOUBLE.fieldOf("wastelands_height").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("wastelands_height").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.wastelandsHeight;
-			}), Codec.DOUBLE.fieldOf("wastelands_scale").stable().forGetter((chunkGenerator) -> {
+			}), DensityFunction.DIRECT_CODEC.fieldOf("wastelands_scale").stable().forGetter((chunkGenerator) -> {
 				return chunkGenerator.wastelandsScale;
-			})).apply(instance, instance.stable(NoiseIcicleShape::new));
+			})).apply(instance, instance.stable(NoiseIcicleShapeSamplers::new));
 		});
 
-		private static List<Function<NoiseIcicleShape, Double>> SAMPLERS = List.of((icicleShape) -> icicleShape.pokeThreshold, (icicleShape) -> icicleShape.spaghettiPokeThreshold, (icicleShape) -> icicleShape.translateXScale, (icicleShape) -> icicleShape.translateZScale, (icicleShape) -> icicleShape.totalHeightScale, (icicleShape) -> icicleShape.totalHeightShift, (icicleShape) -> icicleShape.icicleHeight, (icicleShape) -> icicleShape.icicleScale, (icicleShape) -> icicleShape.wastelandsHeight, (icicleShape) -> icicleShape.wastelandsScale);
-
 		/* How thick the caves are */
-		public final double pokeThreshold;
-		public final double spaghettiPokeThreshold;
+		public final DensityFunction pokeThreshold;
+		public final DensityFunction spaghettiPokeThreshold;
 
 		/* How wobbly the icicles are */
-		public final double translateXScale;
-		public final double translateZScale;
+		public final DensityFunction translateXScale;
+		public final DensityFunction translateZScale;
+
+		/* How dense the icicles are */
+		public final DensityFunction densityXScale;
+		public final DensityFunction densityZScale;
+
+		/* How sparse the icicles are */
+		public final DensityFunction sparsityXScale;
+		public final DensityFunction sparsityZScale;
 
 		/* Scale Icicle sizes */
-		public final double totalHeightScale;
+		public final DensityFunction totalHeightScale;
 
 		/* Shift Icicles up/down */
-		public final double totalHeightShift;
+		public final DensityFunction totalHeightShift;
 
 		/* Icicles (bottom of the hiemal) */
-		public final double icicleHeight;
-		public final double icicleScale;
+		public final DensityFunction icicleHeight;
+		public final DensityFunction icicleScale;
 
 		/* Wastelands (top of the hiemal) */
-		public final double wastelandsHeight;
-		public final double wastelandsScale;
+		public final DensityFunction wastelandsHeight;
+		public final DensityFunction wastelandsScale;
 
-		public NoiseIcicleShape(double pokeThreshold, double spaghettiPokeThreshold, double translateXScale, double translateZScale, double totalHeightScale, double totalHeightShift, double icicleHeight, double icicleScale, double wastelandsHeight, double wastelandsScale) {
+		public NoiseIcicleShapeSamplers(DensityFunction pokeThreshold, DensityFunction spaghettiPokeThreshold, DensityFunction translateXScale, DensityFunction translateZScale, DensityFunction densityXScale, DensityFunction densityZScale, DensityFunction sparsityXScale, DensityFunction sparsityZScale, DensityFunction totalHeightScale, DensityFunction totalHeightShift, DensityFunction icicleHeight, DensityFunction icicleScale, DensityFunction wastelandsHeight, DensityFunction wastelandsScale) {
 			this.pokeThreshold = pokeThreshold;
 			this.spaghettiPokeThreshold = spaghettiPokeThreshold;
 			this.translateXScale = translateXScale;
 			this.translateZScale = translateZScale;
+			this.densityXScale = densityXScale;
+			this.densityZScale = densityZScale;
+			this.sparsityXScale = sparsityXScale;
+			this.sparsityZScale = sparsityZScale;
 			this.totalHeightScale = totalHeightScale;
 			this.totalHeightShift = totalHeightShift;
 			this.icicleHeight = icicleHeight;
@@ -292,74 +309,6 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 			this.wastelandsHeight = wastelandsHeight;
 			this.wastelandsScale = wastelandsScale;
 		}
-
-		private static NoiseIcicleShape createBlended(List<Double> blended) {
-			return new NoiseIcicleShape(blended.get(0), blended.get(1), blended.get(2), blended.get(3), blended.get(4), blended.get(5), blended.get(6), blended.get(7), blended.get(8), blended.get(9));
-		}
-
-	}
-
-	public static double samplePokeThreshold(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.pokeThreshold);
-	}
-
-	public static double sampleSpaghettiPokeThreshold(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.spaghettiPokeThreshold);
-	}
-
-	public static double sampleTranslateXScale(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.translateXScale);
-	}
-
-	public static double sampleTranslateZScale(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.translateZScale);
-	}
-
-	public static double sampleTotalHeightScale(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.totalHeightScale);
-	}
-
-	public static double sampleTotalHeightShift(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.totalHeightShift);
-	}
-
-	public static double sampleIcicleHeight(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.icicleHeight);
-	}
-
-	public static double sampleIcicleScale(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.icicleScale);
-	}
-
-	public static double sampleWastelandsHeight(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.wastelandsHeight);
-	}
-
-	public static double sampleWastelandsScale(WorldView world, int x, int z) {
-		return sample(world, x, z, (icicleShape) -> icicleShape.wastelandsScale);
-	}
-
-	public static double sample(WorldView world, int x, int z, Function<NoiseIcicleShape, Double> sampler) {
-		return sampler.apply(getBlendedIcicleShapes().getOrPut(new BlockPos(x, 0, z), () -> NoiseIcicleShape.createBlended(NoiseIcicleShape.SAMPLERS.stream().map((blendSampler) -> {
-
-			int range = 0;
-			double sampled = 0.0D;
-			CuboidBlockIterator iterator = new CuboidBlockIterator(x - range, 0, z - range, x + range, 0, z + range);
-			for (BlockPos.Mutable mutable = new BlockPos.Mutable(); iterator.step();) {
-				mutable.set(iterator.getX(), iterator.getY(), iterator.getZ());
-				sampled += blendSampler.apply(getIcicleShapes().getOrPut(mutable.toImmutable(), () -> ((BiomeNoiseIcicleShapeAccess) (Object) world.getNoiseBiome(mutable.getX(), mutable.getY(), mutable.getZ()).value()).getNoiseIcicleShape().get()));
-			}
-
-			return sampled / ((2 * range + 1) * (2 * range + 1));
-		}).toList())));
-	}
-
-	public synchronized static QueueHashMap<BlockPos, NoiseIcicleShape> getIcicleShapes() {
-		return ICICLE_SHAPES;
-	}
-
-	public synchronized static QueueHashMap<BlockPos, NoiseIcicleShape> getBlendedIcicleShapes() {
-		return BLENDED_ICICLE_SHAPES;
 	}
 
 }

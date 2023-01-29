@@ -13,7 +13,7 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class FrostyHeightsBiomes {
 
-	public static final RegistryKey<Biome> HIEMAL_BARRENS = get(FrostyHeightsWorld.THE_HIEMAL);
+	public static final RegistryKey<Biome> HIEMAL_BARRENS = get("hiemal_barrens");
 
 	public static void init() {
 		get("frosty_heights_chunk_generator", NoiseIcicleChunkGenerator.CODEC);
