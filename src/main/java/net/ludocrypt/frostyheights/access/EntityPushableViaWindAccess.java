@@ -6,8 +6,8 @@ import net.ludocrypt.frostyheights.mixin.common.EntityMixin;
  * 
  * @author LudoCrypt
  *
- *         Duck interface used in {@link EntityMixin} to tell how long an entity
- *         has been on a block of Phantom Ice.
+ *         Duck interface used in {@link EntityMixin} to tell if an entity can
+ *         be pushed by wind.
  *
  */
 public interface EntityPushableViaWindAccess {

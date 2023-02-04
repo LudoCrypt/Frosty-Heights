@@ -5,11 +5,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.authlib.GameProfile;
 
+import net.ludocrypt.frostyheights.access.PlayerEntityInputsAccess;
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.client.sound.FrostyHeightsWindSoundInstance;
 import net.ludocrypt.frostyheights.init.FrostyHeightsParticles;
@@ -17,6 +19,7 @@ import net.ludocrypt.frostyheights.init.FrostyHeightsWorld;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherData;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -25,11 +28,14 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.random.RandomGenerator;
 
 @Mixin(ClientPlayerEntity.class)
-public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
+public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity implements PlayerEntityInputsAccess {
 
 	@Shadow
 	@Final
 	protected MinecraftClient client;
+
+	@Shadow
+	public Input input;
 
 	@Unique
 	private FrostyHeightsWindSoundInstance windSoundInstance = null;
@@ -73,4 +79,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 	}
+
+	@Inject(method = "Lnet/minecraft/client/network/ClientPlayerEntity;tickNewAi()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isCamera()Z", shift = Shift.AFTER))
+	private void frostyHeights$tickNewAi(CallbackInfo ci) {
+		this.setSidewaysInputSpeed(this.input.sidewaysMovement);
+		this.setForwardInputSpeed(this.input.forwardMovement);
+	}
+
 }

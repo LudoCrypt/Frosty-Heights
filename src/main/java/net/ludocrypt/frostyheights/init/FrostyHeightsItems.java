@@ -12,6 +12,8 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.ModifyEntries;
 import net.ludocrypt.frostyheights.FrostyHeights;
+import net.ludocrypt.frostyheights.item.ClimbingPickaxeItem;
+import net.ludocrypt.frostyheights.item.ClimbingPickaxeItem.ClimbingPickaxeMaterial;
 import net.ludocrypt.frostyheights.item.FrostyHeightsMusicDiscItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -30,6 +32,8 @@ public class FrostyHeightsItems {
 	public static final Item MUSIC_DISC_POTENT = get("music_disc_potent", new FrostyHeightsMusicDiscItem(6, FrostyHeightsSounds.MUSIC_DISC_POTENT.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 194), ItemGroups.FUNCTIONAL);
 	public static final Item MUSIC_DISC_FRORE = get("music_disc_frore", new FrostyHeightsMusicDiscItem(7, FrostyHeightsSounds.MUSIC_DISC_FRORE.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 160), ItemGroups.FUNCTIONAL);
 	public static final Item MUSIC_DISC_CELLAR = get("music_disc_cellar", new FrostyHeightsMusicDiscItem(8, FrostyHeightsSounds.MUSIC_DISC_CELLAR.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 328), ItemGroups.FUNCTIONAL);
+
+	public static final Item CLIMBING_PICKAXE = get("climbing_pickaxe", new ClimbingPickaxeItem(new ClimbingPickaxeMaterial(), new QuiltItemSettings()), ItemGroups.TOOLS);
 
 	public static void init() {
 		FROSTY_HEIGHTS_ITEM_GROUP_ENTRIES.forEach((itemGroup, items) -> ItemGroupEvents.modifyEntriesEvent(itemGroup).register(new ModifyEntries() {

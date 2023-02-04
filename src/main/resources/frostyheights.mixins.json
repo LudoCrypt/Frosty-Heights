@@ -5,7 +5,10 @@
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
 		"common.EntityMixin",
+		"common.LivingEntityMixin",
 		"common.NoiseRouterDataAccessor",
+		"common.PlayerEntityMixin",
+		"common.ServerPlayerEntityMixin",
 		"common.ServerWorldMixin",
 		"common.ThreadedChunkManagerMixin",
 		"common.VanillaSurfaceRulesAccessor",
