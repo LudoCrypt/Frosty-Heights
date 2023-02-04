@@ -95,32 +95,42 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 			this.getWeatherData().setWeatherSettings(this.getWeatherData().getCurrentWeather().cloneSettings());
 		}
 
-		// Set the previous weather settings to the current weather settings before we
-		// update the weather settings.
+		/*
+		 * Set the previous weather settings to the current weather settings before we
+		 * update the weather settings.
+		 */
 		this.getWeatherData().setPrevWeatherSettings(this.getWeatherData().getWeatherSettings().clone());
 
-		// Update the weather settings by inching towards the current weathers' weather
-		// settings.
+		/*
+		 * Update the weather settings by inching towards the current weathers' weather
+		 * settings.
+		 */
 		this.getWeatherData().getWeatherSettings().stepTowards(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
 
-		// Inch darkness separately for warning players of the upcoming weather 600
-		// ticks, 30 seconds, before change.
+		/*
+		 * Inch darkness separately for warning players of the upcoming weather 600
+		 * ticks, 30 seconds, before change.
+		 */
 		if (this.getWeatherData().getTicksUntilNextWeather() <= 600) {
 			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getNextWeather().cloneSettings(), 600);
 		} else {
 			this.getWeatherData().getWeatherSettings().stepDarknessScalar(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
 		}
 
-		// Inch snow separately for warning players of the upcoming weather 1200
-		// ticks, 60 seconds, before change.
+		/*
+		 * Inch snow separately for warning players of the upcoming weather 1200 ticks,
+		 * 60 seconds, before change.
+		 */
 		if (this.getWeatherData().getTicksUntilNextWeather() <= 1200) {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 0.0001);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 0.0001);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().cloneSettings(), 0.0005);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1000);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1000);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().cloneSettings(), 2000);
+			this.getWeatherData().getWeatherSettings().stepSnowFogDistance(this.getWeatherData().getNextWeather().cloneSettings(), 2000);
 		} else {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().cloneSettings(), 0.1);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
+			this.getWeatherData().getWeatherSettings().stepSnowFogDistance(this.getWeatherData().getNextWeather().cloneSettings(), 1400);
 		}
 
 		// Update

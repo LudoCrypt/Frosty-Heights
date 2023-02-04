@@ -18,6 +18,7 @@
 		"client.BackgroundRendererMixin",
 		"client.ClientPlayerEntityMixin",
 		"client.LightmapTextureManagerMixin",
+		"client.ParticleAccessor",
 		"client.WorldRendererMixin"
 	],
 	"injectors": {

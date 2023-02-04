@@ -5,6 +5,7 @@ import org.quiltmc.loader.api.minecraft.ClientOnly;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.ludocrypt.frostyheights.access.WeatherAccess;
+import net.ludocrypt.frostyheights.mixin.client.ParticleAccessor;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.Particle;
@@ -15,7 +16,6 @@ import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.DefaultParticleType;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -25,6 +25,8 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 	private final MinecraftClient client = MinecraftClient.getInstance();
 	private final double arcStrength;
 	private final double arcDeviation;
+
+	private double speed;
 
 	protected SnowFlakeParticle(ClientWorld clientWorld, double x, double y, double z, double dx, double dy, double dz) {
 		super(clientWorld, x, y, z, dx, dy, dz);
@@ -46,38 +48,48 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 
 	@Override
 	public void tick() {
+		double snowParticleDistance = ((WeatherAccess) this.world).getWeatherData().getSnowFogDistance(1.0F);
 
-		Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, new Vec3d(this.x, this.y, this.z));
-		Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(Math.toRadians(polar.y + arcDeviation)), polar.x * (float) Math.cos(Math.toRadians(polar.y + arcDeviation)));
-
-		this.setVelocity(MathHelper.lerp(polar.x * arcStrength, this.velocityX, cartesian.x - this.random.nextDouble() / 10.0D), (polar.x - 1.0D) * 0.07D, MathHelper.lerp(polar.x * arcStrength, this.velocityZ, cartesian.y - this.random.nextDouble() / 10.0D));
-
-		// Remove faster if on ground
-		if (this.onGround) {
-			this.maxAge -= 20;
-		}
-
-		// Remove faster if next to blocks
-		if (!(this.world.getBlockState(new BlockPos(this.x + 1, this.y, this.z)).isAir() && this.world.getBlockState(new BlockPos(this.x, this.y, this.z + 1)).isAir() && this.world.getBlockState(new BlockPos(this.x - 1, this.y, this.z)).isAir() && this.world.getBlockState(new BlockPos(this.x, this.y, this.z - 1)).isAir())) {
-			this.maxAge -= 20;
-		}
-
-		// Remove faster when wind is slower
-		this.maxAge -= MathHelper.clamp((1.0F - (polar.x / ((WeatherAccess) this.world).getWeatherData().getWindAmplitude(1.0F))) * 3.0F, 0.0D, 3.0D);
-
-		if (this.client.player.getEyePos().squaredDistanceTo(new Vec3d(this.x, this.y, this.z)) >= ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(1.0F) * ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(1.0F)) {
+		if (this.client.player.getEyePos().squaredDistanceTo(new Vec3d(this.x, this.y, this.z)) >= snowParticleDistance * snowParticleDistance) {
 			this.markDead();
 		}
 
+		if (!((ParticleAccessor) this).getStoppedByCollision()) {
+			Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, new Vec3d(this.x, this.y, this.z));
+			double dirInRadians = Math.toRadians(polar.y + this.arcDeviation);
+			Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(dirInRadians), polar.x * (float) Math.cos(dirInRadians));
+			this.setVelocity(MathHelper.lerp(polar.x * this.arcStrength, this.velocityX, cartesian.x - this.random.nextDouble() / 10.0D), (polar.x - 1.0D) * 0.07D, MathHelper.lerp(polar.x * this.arcStrength, this.velocityZ, cartesian.y - this.random.nextDouble() / 10.0D));
+		}
+
 		super.tick();
+
+		this.speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY + this.velocityZ * this.velocityZ);
+		this.age += 10 * (1 - Math.min(this.speed, 1.0D));
+
+		// Prevents snowflakes from piling up in corners
+		if (!this.onGround && this.velocityX == 0.0D && this.velocityZ == 0.0D) {
+			this.age += 100;
+		}
 	}
 
 	@Override
 	public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
-		float darkness = (float) ((WeatherAccess) (world)).getWeatherData().getDarknessScalar(tickDelta);
+		float darkness = (float) ((WeatherAccess) (this.world)).getWeatherData().getDarknessScalar(tickDelta);
 		this.setColor(darkness, darkness, darkness);
 
-		this.setColorAlpha(MathHelper.clamp(1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z)) / ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(tickDelta)), 0.0F, 1.0F));
+		this.setColorAlpha(MathHelper.clamp(1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z)) / ((WeatherAccess) this.world).getWeatherData().getSnowFogDistance(tickDelta)), 0.0F, 1.0F));
+
+		// Fade in and out
+		float fade = 1.0F;
+		int fadeLength = Math.round(40.0F * (1.0F - Math.min((float) this.speed, 1.0F)));
+		if (this.age <= fadeLength) {
+			fade = (float) this.age / fadeLength;
+		} else {
+			int remainingAge = this.getMaxAge() - Math.min(this.age, this.getMaxAge());
+			if (remainingAge <= fadeLength)
+				fade = (float) remainingAge / fadeLength;
+		}
+		this.colorAlpha *= fade;
 
 		super.buildGeometry(vertexConsumer, camera, tickDelta);
 	}

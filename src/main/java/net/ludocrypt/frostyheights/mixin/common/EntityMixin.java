@@ -22,7 +22,6 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -51,17 +50,7 @@ public abstract class EntityMixin implements EntityTicksOnPhantomIceAccess, Enti
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void frostyHeights$init(EntityType<?> entityType, World world, CallbackInfo ci) {
 		this.dataTracker.startTracking(TICKS_ON_PHANTOM_ICE, 0);
-
-		boolean isPushable = false;
-
-		for (String type : FrostyHeightsConfig.pushedByWindEntities) {
-			isPushable |= EntityType.getId(entityType).equals(new Identifier(type));
-			if (isPushable) {
-				break;
-			}
-		}
-
-		this.dataTracker.startTracking(PUSHABLE_VIA_WIND, isPushable);
+		this.dataTracker.startTracking(PUSHABLE_VIA_WIND, FrostyHeightsConfig.pushedByWindEntities.contains(EntityType.getId(entityType).toString()));
 	}
 
 	@Inject(method = "tick", at = @At("TAIL"))

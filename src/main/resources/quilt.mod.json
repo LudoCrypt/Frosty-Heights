@@ -6,12 +6,9 @@
 		"version": "${version}",
 		"metadata": {
 			"name": "Frosty Heights",
-			"description": "A bone-chilling realm to explore, featuring many friends and foes.",
+			"description": "A bone-chilling realm to explore, featuring many friends and foes.\n\nCredits:\nLudoCrypt: Author, Develoepr, Musician, Sound Designer\nShai: Author, Artist\nEB MARIO: Animator, 3D Mob Designer\nUraneptus: Logo Designer",
 			"contributors": {
-				"Shai": "Author, Artist",
-				"LudoCrypt": "Co-Author, Developer, Musician",
-				"EB MARIO": "Animator, 3D Mob Designer",
-				"Uraneptus": "Logo Designer"
+				"Team Crypt": "Creators"
 			},
 			"contact": {
 				"homepage": "https://www.curseforge.com/minecraft/mc-mods/frosty-heights",
@@ -24,6 +21,7 @@
 		"entrypoints": {
 			"init": "net.ludocrypt.frostyheights.FrostyHeights",
 			"client_init": "net.ludocrypt.frostyheights.client.FrostyHeightsClient",
+			"modmenu": "net.ludocrypt.frostyheights.config.FrostyHeightsModmenu",
 			"limlib:dimension_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
 			"limlib:registry_loader_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
 			"limlib:sound_effects_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",

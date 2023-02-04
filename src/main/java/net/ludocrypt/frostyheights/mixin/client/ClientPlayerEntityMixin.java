@@ -25,6 +25,8 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.random.RandomGenerator;
 
 @Mixin(ClientPlayerEntity.class)
@@ -54,25 +56,31 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				this.client.getSoundManager().play(this.windSoundInstance);
 			}
 
-			if (this.age % 5 == 0) {
-				FrostyHeightsWeatherData data = ((WeatherAccess) (this.world)).getWeatherData();
-				double dist = data.getSnowParticleDistance(1.0F);
+			FrostyHeightsWeatherData data = ((WeatherAccess) (this.world)).getWeatherData();
 
-				int slices = (int) dist;
-				for (int cy = -slices; cy <= slices; cy += 2) {
-					double heightScalar = FrostyHeightsWeatherManager.getScalingFactor(this.getY() + cy);
-					double wastelandsScalar = FrostyHeightsWeatherManager.piecewiseScalar(this.getY() + cy, 1.0D, 1.0D, 1.0D, 500.0D, 1.5D);
+			for (int cx = -1; cx <= 1; cx++) {
+				for (int cy = -1; cy <= 1; cy++) {
+					for (int cz = -1; cz <= 1; cz++) {
+						BlockPos cPos = this.getBlockPos().add(cx * 3, cy * 3, cz * 3);
 
-					RandomGenerator random = this.world.getRandom();
-					int particles = MathHelper.nextInt(random, (int) (data.getMinSnowParticles(1.0F) * heightScalar + wastelandsScalar), (int) (data.getMaxSnowParticles(1.0F) * heightScalar + wastelandsScalar)) / slices;
+						Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, Vec3d.ofCenter(cPos));
+						int rate = Math.round((-4.0F * polar.x) + 5.0F);
+						if (this.age % rate == 0) {
+							double dist = data.getSnowParticleDistance(1.0F);
+							double heightScalar = FrostyHeightsWeatherManager.getScalingFactor(cPos.getY());
+							double wastelandsScalar = FrostyHeightsWeatherManager.piecewiseScalar(cPos.getY(), 1.0D, 1.0D, 1.0D, 500.0D, 1.5D);
 
-					for (int i = 0; i < particles; i++) {
-						double dx = MathHelper.nextDouble(random, -dist, dist);
-						double dy = MathHelper.nextDouble(random, -dist / (double) slices, dist / (double) slices) + cy;
-						double dz = MathHelper.nextDouble(random, -dist, dist);
+							RandomGenerator random = this.world.getRandom();
+							int particles = MathHelper.nextInt(random, (int) (data.getMinSnowParticles(1.0F) * heightScalar + wastelandsScalar), (int) (data.getMaxSnowParticles(1.0F) * heightScalar + wastelandsScalar)) / 21;
+							for (int i = 0; i < particles; i++) {
+								double dx = MathHelper.nextDouble(random, -dist, dist);
+								double dy = MathHelper.nextDouble(random, -dist, dist);
+								double dz = MathHelper.nextDouble(random, -dist, dist);
 
-						if (world.getBlockState(new BlockPos(this.getX() + dx, this.getY() + dy, this.getZ() + dz)).isAir()) {
-							this.world.addParticle(FrostyHeightsParticles.SNOW_FLAKE, this.getX() + dx, this.getY() + dy, this.getZ() + dz, 0, 0, 0);
+								if (world.getBlockState(new BlockPos(cPos.getX() + dx, cPos.getY() + dy, cPos.getZ() + dz)).isAir()) {
+									this.world.addParticle(FrostyHeightsParticles.SNOW_FLAKE, cPos.getX() + dx, cPos.getY() + dy, cPos.getZ() + dz, 0, 0, 0);
+								}
+							}
 						}
 					}
 				}

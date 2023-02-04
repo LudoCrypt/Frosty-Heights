@@ -12,7 +12,7 @@ public class FrostyHeightsModmenu implements ModMenuApi {
 
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return parent -> MidnightConfig.getScreen(parent, "the_corners");
+		return parent -> MidnightConfig.getScreen(parent, "frostyheights");
 	}
 
 }
