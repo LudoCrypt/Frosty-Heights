@@ -11,7 +11,7 @@ import net.minecraft.util.random.RandomGenerator;
  *
  */
 public enum FrostyHeightsWeather {
-	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 10, 10.0D, 20.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 5.0D, 20.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.7D, 100, 200, 4.0D, 15.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 30, 100, 8.0D, 35.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.63D, 200, 400, 5.0D, 10.0D));
+	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 1, 20.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 20.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.7D, 900, 1600, 15.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 100, 150, 35.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.7D, 1000, 2000, 10.0D));
 
 	private final int minTime;
 	private final int maxTime;
@@ -33,7 +33,7 @@ public enum FrostyHeightsWeather {
 	}
 
 	public WeatherSettings cloneSettings() {
-		return this.equals(UNDETERMINED) ? new WeatherSettings() : new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(), this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(), this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(), this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance(), this.weatherSettings.getSnowFogDistance());
+		return this.equals(UNDETERMINED) ? new WeatherSettings() : new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(), this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(), this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(), this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance());
 	}
 
 	public FrostyHeightsWeather getNext(RandomGenerator random) {
@@ -77,6 +77,9 @@ public enum FrostyHeightsWeather {
 		}
 	}
 
+	/*
+	 * Sliders for affecting the weather that change smoothly over time.
+	 */
 	public static class WeatherSettings {
 
 		/* Is Undetermined */
@@ -104,9 +107,6 @@ public enum FrostyHeightsWeather {
 		/* How far away the snow particles can spawn */
 		private double snowParticleDistance;
 
-		/* How far away the snow particles can spawn */
-		private double snowFogDistance;
-
 		private WeatherSettings() {
 			this.undetermined = true;
 			this.windAmplitude = 0.0D;
@@ -117,10 +117,9 @@ public enum FrostyHeightsWeather {
 			this.minSnowParticles = 0.0D;
 			this.maxSnowParticles = 0.0D;
 			this.snowParticleDistance = 0.0D;
-			this.snowFogDistance = 0.0D;
 		}
 
-		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength, double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles, double snowParticleDistance, double snowFogDistance) {
+		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength, double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles, double snowParticleDistance) {
 			this.undetermined = false;
 			this.windAmplitude = windAmplitude;
 			this.windVelocity = windVelocity;
@@ -130,7 +129,6 @@ public enum FrostyHeightsWeather {
 			this.minSnowParticles = minSnowParticles;
 			this.maxSnowParticles = maxSnowParticles;
 			this.snowParticleDistance = snowParticleDistance;
-			this.snowFogDistance = snowFogDistance;
 		}
 
 		public boolean isUndetermined() {
@@ -169,10 +167,6 @@ public enum FrostyHeightsWeather {
 			return snowParticleDistance;
 		}
 
-		public double getSnowFogDistance() {
-			return snowFogDistance;
-		}
-
 		public void setWindAmplitude(double windAmplitude) {
 			this.windAmplitude = windAmplitude;
 		}
@@ -205,10 +199,6 @@ public enum FrostyHeightsWeather {
 			this.snowParticleDistance = snowParticleDistance;
 		}
 
-		public void setSnowFogDistance(double snowFogDistance) {
-			this.snowFogDistance = snowFogDistance;
-		}
-
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof WeatherSettings settings) {
@@ -226,9 +216,8 @@ public enum FrostyHeightsWeather {
 			double minSnowParticles = buf.readDouble();
 			double maxSnowParticles = buf.readDouble();
 			double snowParticleDistance = buf.readDouble();
-			double snowFogDistance = buf.readDouble();
 
-			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar, minSnowParticles, maxSnowParticles, snowParticleDistance, snowFogDistance);
+			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar, minSnowParticles, maxSnowParticles, snowParticleDistance);
 		}
 
 		public void writeBuf(PacketByteBuf buf) {
@@ -240,7 +229,6 @@ public enum FrostyHeightsWeather {
 			buf.writeDouble(this.getMinSnowParticles());
 			buf.writeDouble(this.getMaxSnowParticles());
 			buf.writeDouble(this.getSnowParticleDistance());
-			buf.writeDouble(this.getSnowFogDistance());
 		}
 
 		public void copy(WeatherSettings settings) {
@@ -252,11 +240,10 @@ public enum FrostyHeightsWeather {
 			this.setMinSnowParticles(settings.getMinSnowParticles());
 			this.setMaxSnowParticles(settings.getMaxSnowParticles());
 			this.setSnowParticleDistance(settings.getSnowParticleDistance());
-			this.setSnowFogDistance(settings.getSnowFogDistance());
 		}
 
 		public WeatherSettings clone() {
-			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(), this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(), this.getMaxSnowParticles(), this.getSnowParticleDistance(), this.getSnowFogDistance());
+			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(), this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(), this.getMaxSnowParticles(), this.getSnowParticleDistance());
 		}
 
 		public void stepTowards(WeatherSettings settings, double steps) {
@@ -298,10 +285,12 @@ public enum FrostyHeightsWeather {
 			this.setSnowParticleDistance(step(steps, this.getSnowParticleDistance(), settings.getSnowParticleDistance()));
 		}
 
-		public void stepSnowFogDistance(WeatherSettings settings, double steps) {
-			this.setSnowFogDistance(step(steps, this.getSnowFogDistance(), settings.getSnowFogDistance()));
-		}
-
+		/**
+		 * Steps a value towards another.
+		 * 
+		 * @param delta The size of each step. Can also be thought of as how long in
+		 *              ticks should the start reach the end.
+		 */
 		public static double step(double delta, double start, double end) {
 			if (start == end) {
 				return end;

@@ -122,15 +122,13 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 		 * 60 seconds, before change.
 		 */
 		if (this.getWeatherData().getTicksUntilNextWeather() <= 1200) {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1000);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1000);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().cloneSettings(), 2000);
-			this.getWeatherData().getWeatherSettings().stepSnowFogDistance(this.getWeatherData().getNextWeather().cloneSettings(), 2000);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1200);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getNextWeather().cloneSettings(), 1200);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getNextWeather().cloneSettings(), 1200);
 		} else {
-			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
-			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().cloneSettings(), 1400);
-			this.getWeatherData().getWeatherSettings().stepSnowFogDistance(this.getWeatherData().getNextWeather().cloneSettings(), 1400);
+			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
+			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(this.getWeatherData().getCurrentWeather().cloneSettings(), 200);
 		}
 
 		// Update

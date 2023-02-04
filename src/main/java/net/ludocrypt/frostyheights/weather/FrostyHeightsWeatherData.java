@@ -190,10 +190,6 @@ public class FrostyHeightsWeatherData {
 		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getSnowParticleDistance(), this.getWeatherSettings().getSnowParticleDistance());
 	}
 
-	public double getSnowFogDistance(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getSnowFogDistance(), this.getWeatherSettings().getSnowFogDistance());
-	}
-
 	public FrostyHeightsWeather getPrevWeather() {
 		return prevWeather;
 	}

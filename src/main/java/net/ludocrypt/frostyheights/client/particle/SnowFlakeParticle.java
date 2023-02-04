@@ -48,7 +48,7 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 
 	@Override
 	public void tick() {
-		double snowParticleDistance = ((WeatherAccess) this.world).getWeatherData().getSnowFogDistance(1.0F);
+		double snowParticleDistance = ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(1.0F);
 
 		if (this.client.player.getEyePos().squaredDistanceTo(new Vec3d(this.x, this.y, this.z)) >= snowParticleDistance * snowParticleDistance) {
 			this.markDead();
@@ -77,7 +77,7 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 		float darkness = (float) ((WeatherAccess) (this.world)).getWeatherData().getDarknessScalar(tickDelta);
 		this.setColor(darkness, darkness, darkness);
 
-		this.setColorAlpha(MathHelper.clamp(1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z)) / ((WeatherAccess) this.world).getWeatherData().getSnowFogDistance(tickDelta)), 0.0F, 1.0F));
+		this.setColorAlpha(MathHelper.clamp(1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z)) / ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(tickDelta)), 0.0F, 1.0F));
 
 		// Fade in and out
 		float fade = 1.0F;
