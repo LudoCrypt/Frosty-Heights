@@ -11,7 +11,7 @@ import net.minecraft.util.random.RandomGenerator;
  *
  */
 public enum FrostyHeightsWeather {
-	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 1, 20.0D, 0.0D, 0.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 20.0D, 0.0D, 0.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.6D, 900, 1600, 15.0D, 0.18D, 10.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 100, 150, 35.0D, 0.0D, 0.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.75D, 1300, 2000, 15.0D, 0.2D, 8.0D));
+	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 1, 20.0D, 0.0D, 0.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 20.0D, 0.0D, 0.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.75D, 900, 1600, 15.0D, 0.18D, 10.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 100, 150, 35.0D, 0.0D, 0.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.65D, 1300, 2000, 15.0D, 0.2D, 8.0D));
 
 	private final int minTime;
 	private final int maxTime;

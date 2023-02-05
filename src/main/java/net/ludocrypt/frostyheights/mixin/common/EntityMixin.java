@@ -50,7 +50,7 @@ public abstract class EntityMixin implements EntityTicksOnPhantomIceAccess, Enti
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void frostyHeights$init(EntityType<?> entityType, World world, CallbackInfo ci) {
 		this.dataTracker.startTracking(TICKS_ON_PHANTOM_ICE, 0);
-		this.dataTracker.startTracking(PUSHABLE_VIA_WIND, FrostyHeightsConfig.pushedByWindEntities.contains(EntityType.getId(entityType).toString()));
+		this.dataTracker.startTracking(PUSHABLE_VIA_WIND, !FrostyHeightsConfig.windExemptEntities.contains(EntityType.getId(entityType).toString()));
 	}
 
 	@Inject(method = "tick", at = @At("TAIL"))

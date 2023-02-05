@@ -5,6 +5,8 @@ import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.midnightdust.lib.config.MidnightConfig;
+import net.ludocrypt.frostyheights.config.FrostyHeightsConfig;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
 import net.ludocrypt.frostyheights.init.FrostyHeightsCommands;
@@ -18,6 +20,7 @@ public class FrostyHeights implements ModInitializer {
 
 	@Override
 	public void onInitialize(ModContainer mod) {
+		MidnightConfig.init("frostyheights", FrostyHeightsConfig.class);
 		FrostyHeightsSounds.init();
 		FrostyHeightsBlocks.init();
 		FrostyHeightsItems.init();
