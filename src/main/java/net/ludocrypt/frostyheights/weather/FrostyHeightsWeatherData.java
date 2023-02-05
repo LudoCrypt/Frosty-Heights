@@ -15,7 +15,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 /**
- * 
+ *
  * @author LudoCrypt
  *
  *         Contains the data that the weather cycle uses.
@@ -23,6 +23,8 @@ import net.minecraft.world.World;
  */
 public class FrostyHeightsWeatherData {
 	public static final Identifier WEATHER_UPDATE_PACKET_ID = FrostyHeights.id("weather_update");
+
+	public static final int DEFAULT_SNOW_PARTICLE_INTERVAL = 5;
 
 	private int ticksUntilNextWeather = 0;
 	private FrostyHeightsWeather currentWeather = FrostyHeightsWeather.CLEAR;
@@ -196,6 +198,10 @@ public class FrostyHeightsWeatherData {
 
 	public double getDistantSnowCutoff(float tickDelta) {
 		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getDistantSnowCutoff(), this.getWeatherSettings().getDistantSnowCutoff());
+	}
+
+	public int getSnowParticleInterval() {
+		return this.getWeatherSettings().getSnowParticleInterval();
 	}
 
 	public FrostyHeightsWeather getPrevWeather() {

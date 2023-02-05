@@ -20,7 +20,7 @@ import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 
 /**
- * 
+ *
  * @author LudoCrypt
  *
  *         Manages the weather cycles for The Hiemal.
@@ -138,6 +138,7 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 			this.getWeatherData().getWeatherSettings().stepDistantSnowTransparency(currentWeatherSettings, 1000);
 			this.getWeatherData().getWeatherSettings().stepDistantSnowCutoff(currentWeatherSettings, 600);
 		}
+		this.getWeatherData().getWeatherSettings().stepSnowParticleInterval(currentWeatherSettings);
 
 		// Update
 		this.sendToClient();
