@@ -40,9 +40,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private FrostyHeightsWindSoundInstance windSoundInstance = null;
 
-	@Unique
-	private int currentSnowParticleInterval = FrostyHeightsWeatherData.DEFAULT_SNOW_PARTICLE_INTERVAL;
-
 	public ClientPlayerEntityMixin(ClientWorld world, GameProfile gameProfile) {
 		super(world, gameProfile);
 	}
@@ -57,10 +54,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				this.client.getSoundManager().play(this.windSoundInstance);
 			}
 
-			if (this.age % this.currentSnowParticleInterval == 0) {
+			if (this.age % 5 == 0) {
 				FrostyHeightsWeatherData data = ((WeatherAccess) (this.client.world)).getWeatherData();
-				this.currentSnowParticleInterval = data.getSnowParticleInterval();
-
 				double dist = data.getSnowParticleDistance(1.0F);
 
 				int slices = (int) dist;
