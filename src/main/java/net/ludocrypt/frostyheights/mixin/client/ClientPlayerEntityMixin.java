@@ -55,12 +55,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 
 			if (this.age % 5 == 0) {
-				FrostyHeightsWeatherData data = ((WeatherAccess) (this.world)).getWeatherData();
+				FrostyHeightsWeatherData data = ((WeatherAccess) (this.client.world)).getWeatherData();
 				double dist = data.getSnowParticleDistance(1.0F);
 
 				int slices = (int) dist;
 				for (int cy = -slices; cy <= slices; cy += 2) {
-					double windStrength = (FrostyHeightsWeatherManager.getWindPolar(this.world, this.getPos().add(0.0D, cy, 0.0D)).x + 1);
+					double windStrength = (FrostyHeightsWeatherManager.getWindPolar(this.client.world, this.getPos().add(0.0D, cy, 0.0D)).x + 1.5D);
 					double heightScalar = FrostyHeightsWeatherManager.getScalingFactor(this.getY() + cy);
 					double wastelandsScalar = FrostyHeightsWeatherManager.piecewiseScalar(this.getY() + cy, 1.0D, 1.0D, 1.0D, 500.0D, 1.5D);
 

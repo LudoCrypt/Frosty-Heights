@@ -11,7 +11,7 @@ import net.minecraft.util.random.RandomGenerator;
  *
  */
 public enum FrostyHeightsWeather {
-	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 1, 20.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 20.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.7D, 900, 1600, 15.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 100, 150, 35.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.7D, 1000, 2000, 10.0D));
+	UNDETERMINED(0, 0, new WeatherSettings()), CLEAR(36000, 48000, new WeatherSettings(0.05D, 0.02D, 0.0D, 0.1D, 1.0D, 0, 1, 20.0D, 0.0D, 0.0D)), NORMAL(24000, 48000, new WeatherSettings(0.2D, 0.04D, 0.0D, 0.2D, 0.85D, 0, 20, 20.0D, 0.0D, 0.0D)), SNOW(18000, 48000, new WeatherSettings(0.4D, 0.08D, 0.0D, 0.2D, 0.6D, 900, 1600, 15.0D, 0.18D, 10.0D)), WIND(18000, 36000, new WeatherSettings(0.8D, 0.4D, 1.0D, 3.0D, 0.8D, 100, 150, 35.0D, 0.0D, 0.0D)), BLIZZARD(12000, 24000, new WeatherSettings(1.0D, 1.0D, 1.0D, 5.0D, 0.75D, 1300, 2000, 15.0D, 0.2D, 8.0D));
 
 	private final int minTime;
 	private final int maxTime;
@@ -33,7 +33,7 @@ public enum FrostyHeightsWeather {
 	}
 
 	public WeatherSettings cloneSettings() {
-		return this.equals(UNDETERMINED) ? new WeatherSettings() : new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(), this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(), this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(), this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance());
+		return this.equals(UNDETERMINED) ? new WeatherSettings() : new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(), this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(), this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(), this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance(), this.weatherSettings.getDistantSnowTransparency(), this.weatherSettings.getDistantSnowCutoff());
 	}
 
 	public FrostyHeightsWeather getNext(RandomGenerator random) {
@@ -107,6 +107,12 @@ public enum FrostyHeightsWeather {
 		/* How far away the snow particles can spawn */
 		private double snowParticleDistance;
 
+		/* Transparency of distant snow */
+		private double distantSnowTransparency;
+
+		/* How far away the distant snow is */
+		private double distantSnowCutoff;
+
 		private WeatherSettings() {
 			this.undetermined = true;
 			this.windAmplitude = 0.0D;
@@ -117,9 +123,11 @@ public enum FrostyHeightsWeather {
 			this.minSnowParticles = 0.0D;
 			this.maxSnowParticles = 0.0D;
 			this.snowParticleDistance = 0.0D;
+			this.distantSnowTransparency = 0.0D;
+			this.distantSnowCutoff = 0.0D;
 		}
 
-		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength, double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles, double snowParticleDistance) {
+		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength, double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles, double snowParticleDistance, double distantSnowTransparency, double distantSnowCutoff) {
 			this.undetermined = false;
 			this.windAmplitude = windAmplitude;
 			this.windVelocity = windVelocity;
@@ -129,6 +137,8 @@ public enum FrostyHeightsWeather {
 			this.minSnowParticles = minSnowParticles;
 			this.maxSnowParticles = maxSnowParticles;
 			this.snowParticleDistance = snowParticleDistance;
+			this.distantSnowTransparency = distantSnowTransparency;
+			this.distantSnowCutoff = distantSnowCutoff;
 		}
 
 		public boolean isUndetermined() {
@@ -167,6 +177,14 @@ public enum FrostyHeightsWeather {
 			return snowParticleDistance;
 		}
 
+		public double getDistantSnowTransparency() {
+			return distantSnowTransparency;
+		}
+
+		public double getDistantSnowCutoff() {
+			return distantSnowCutoff;
+		}
+
 		public void setWindAmplitude(double windAmplitude) {
 			this.windAmplitude = windAmplitude;
 		}
@@ -199,10 +217,18 @@ public enum FrostyHeightsWeather {
 			this.snowParticleDistance = snowParticleDistance;
 		}
 
+		public void setDistantSnowTransparency(double distantSnowTransparency) {
+			this.distantSnowTransparency = distantSnowTransparency;
+		}
+
+		public void setDistantSnowCutoff(double distantSnowCutoff) {
+			this.distantSnowCutoff = distantSnowCutoff;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof WeatherSettings settings) {
-				return settings.getWindAmplitude() == this.getWindAmplitude() && settings.getWindVelocity() == this.getWindVelocity() && settings.getWindPushStrength() == this.getWindPushStrength() && settings.getVibratoAmplitude() == this.getVibratoAmplitude() && settings.getDarknessScalar() == this.getDarknessScalar();
+				return settings.getWindAmplitude() == this.getWindAmplitude() && settings.getWindVelocity() == this.getWindVelocity() && settings.getWindPushStrength() == this.getWindPushStrength() && settings.getVibratoAmplitude() == this.getVibratoAmplitude() && settings.getDarknessScalar() == this.getDarknessScalar() && settings.getDistantSnowTransparency() == this.getDistantSnowTransparency() && settings.getDistantSnowCutoff() == this.getDistantSnowCutoff();
 			}
 			return this == obj;
 		}
@@ -216,8 +242,10 @@ public enum FrostyHeightsWeather {
 			double minSnowParticles = buf.readDouble();
 			double maxSnowParticles = buf.readDouble();
 			double snowParticleDistance = buf.readDouble();
+			double distantSnowTransparency = buf.readDouble();
+			double distantSnowCutoff = buf.readDouble();
 
-			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar, minSnowParticles, maxSnowParticles, snowParticleDistance);
+			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar, minSnowParticles, maxSnowParticles, snowParticleDistance, distantSnowTransparency, distantSnowCutoff);
 		}
 
 		public void writeBuf(PacketByteBuf buf) {
@@ -229,6 +257,8 @@ public enum FrostyHeightsWeather {
 			buf.writeDouble(this.getMinSnowParticles());
 			buf.writeDouble(this.getMaxSnowParticles());
 			buf.writeDouble(this.getSnowParticleDistance());
+			buf.writeDouble(this.getDistantSnowTransparency());
+			buf.writeDouble(this.getDistantSnowCutoff());
 		}
 
 		public void copy(WeatherSettings settings) {
@@ -240,10 +270,12 @@ public enum FrostyHeightsWeather {
 			this.setMinSnowParticles(settings.getMinSnowParticles());
 			this.setMaxSnowParticles(settings.getMaxSnowParticles());
 			this.setSnowParticleDistance(settings.getSnowParticleDistance());
+			this.setDistantSnowTransparency(settings.getDistantSnowTransparency());
+			this.setDistantSnowCutoff(settings.getDistantSnowCutoff());
 		}
 
 		public WeatherSettings clone() {
-			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(), this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(), this.getMaxSnowParticles(), this.getSnowParticleDistance());
+			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(), this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(), this.getMaxSnowParticles(), this.getSnowParticleDistance(), this.getDistantSnowTransparency(), this.getDistantSnowCutoff());
 		}
 
 		public void stepTowards(WeatherSettings settings, double steps) {
@@ -283,6 +315,14 @@ public enum FrostyHeightsWeather {
 
 		public void stepSnowParticleDistance(WeatherSettings settings, double steps) {
 			this.setSnowParticleDistance(step(steps, this.getSnowParticleDistance(), settings.getSnowParticleDistance()));
+		}
+
+		public void stepDistantSnowTransparency(WeatherSettings settings, double steps) {
+			this.setDistantSnowTransparency(step(steps, this.getDistantSnowTransparency(), settings.getDistantSnowTransparency()));
+		}
+
+		public void stepDistantSnowCutoff(WeatherSettings settings, double steps) {
+			this.setDistantSnowCutoff(step(steps, this.getDistantSnowCutoff(), settings.getDistantSnowCutoff()));
 		}
 
 		/**
