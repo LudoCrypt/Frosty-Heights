@@ -4,7 +4,6 @@ import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +16,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormats;
 
 import net.ludocrypt.frostyheights.client.FrostyHeightsClient;
-import net.ludocrypt.frostyheights.client.render.SnowRenderer;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeatherManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -42,9 +40,6 @@ public class WorldRendererMixin {
 
 	@Shadow
 	private ClientWorld world;
-
-	@Unique
-	private final SnowRenderer snowRenderer = new SnowRenderer();
 
 	/* Visualizes the wind */
 	// TODO: Remove
@@ -100,8 +95,4 @@ public class WorldRendererMixin {
 		}
 	}
 
-	@Inject(method = "Lnet/minecraft/client/render/WorldRenderer;renderWeather(Lnet/minecraft/client/render/LightmapTextureManager;FDDD)V", at = @At("HEAD"))
-	private void frostyHeights$renderWeather(LightmapTextureManager manager, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo ci) {
-		this.snowRenderer.render(manager, ticks, tickDelta, cameraX, cameraY, cameraZ);
-	}
 }

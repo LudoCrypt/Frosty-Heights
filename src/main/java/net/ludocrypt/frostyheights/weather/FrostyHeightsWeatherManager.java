@@ -129,14 +129,14 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(nextWeatherSettings, 15);
 			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(nextWeatherSettings, 15);
 			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(nextWeatherSettings, 800);
-			this.getWeatherData().getWeatherSettings().stepDistantSnowTransparency(nextWeatherSettings, 3000);
-			this.getWeatherData().getWeatherSettings().stepDistantSnowCutoff(nextWeatherSettings, 1200);
+			this.getWeatherData().getWeatherSettings().stepFogDistMinScale(nextWeatherSettings, 1200);
+			this.getWeatherData().getWeatherSettings().stepFogDistMaxScale(nextWeatherSettings, 1200);
 		} else {
 			this.getWeatherData().getWeatherSettings().stepMinSnowParticles(currentWeatherSettings, 0.08D);
 			this.getWeatherData().getWeatherSettings().stepMaxSnowParticles(currentWeatherSettings, 0.08D);
-			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(currentWeatherSettings, 600);
-			this.getWeatherData().getWeatherSettings().stepDistantSnowTransparency(currentWeatherSettings, 1000);
-			this.getWeatherData().getWeatherSettings().stepDistantSnowCutoff(currentWeatherSettings, 600);
+			this.getWeatherData().getWeatherSettings().stepSnowParticleDistance(currentWeatherSettings, 200);
+			this.getWeatherData().getWeatherSettings().stepFogDistMinScale(currentWeatherSettings, 200);
+			this.getWeatherData().getWeatherSettings().stepFogDistMaxScale(currentWeatherSettings, 200);
 		}
 
 		// Update

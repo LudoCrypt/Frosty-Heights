@@ -81,7 +81,7 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 
 		// Fade in and out
 		float fade = 1.0F;
-		int fadeLength = Math.round(40.0F * (1.0F - Math.min((float) this.speed, 1.0F)));
+		int fadeLength = Math.round(100.0F * (1.0F - Math.min((float) this.speed, 1.0F)));
 		if (this.age <= fadeLength) {
 			fade = (float) this.age / fadeLength;
 		} else {
