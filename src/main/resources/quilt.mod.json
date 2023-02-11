@@ -6,9 +6,12 @@
 		"version": "${version}",
 		"metadata": {
 			"name": "Frosty Heights",
-			"description": "A bone-chilling realm to explore, featuring many friends and foes.\n\nCredits:\nLudoCrypt: Author, Develoepr, Musician, Sound Designer\nShai: Author, Artist\nEB MARIO: Animator, 3D Mob Designer\nUraneptus: Logo Designer",
+			"description": "A bone-chilling realm to explore, featuring many friends and foes.\n\nFull Credits:\nLudoCrypt: Author, Develoepr, Musician, Sound Designer\nShai: Author, Artist\nEB MARIO: Animator, 3D Mob Designer\nUraneptus: Logo Designer",
 			"contributors": {
-				"Team Crypt": "Creators"
+				"LudoCrypt": "Author",
+				"Shai": "Lead Artist",
+				"EB MARIO": "Lead Mob Designer",
+				"Uraneptus": "Lead Logo Designer"
 			},
 			"contact": {
 				"homepage": "https://www.curseforge.com/minecraft/mc-mods/frosty-heights",
