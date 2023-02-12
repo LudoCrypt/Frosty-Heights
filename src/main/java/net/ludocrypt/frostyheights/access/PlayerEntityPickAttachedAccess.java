@@ -1,5 +1,6 @@
 package net.ludocrypt.frostyheights.access;
 
+import net.ludocrypt.frostyheights.climbing.ClimbingMovementHandler;
 import net.ludocrypt.frostyheights.mixin.common.PlayerEntityMixin;
 
 /**
@@ -15,5 +16,7 @@ public interface PlayerEntityPickAttachedAccess {
 	public boolean isPickAttached();
 
 	public void setPickAttached(boolean pickAttached);
+
+	public ClimbingMovementHandler getMovementHandler();
 
 }

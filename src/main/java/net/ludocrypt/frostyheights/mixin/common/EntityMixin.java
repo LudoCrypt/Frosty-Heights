@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.ludocrypt.frostyheights.access.EntityPushableViaWindAccess;
 import net.ludocrypt.frostyheights.access.EntityTicksOnPhantomIceAccess;
+import net.ludocrypt.frostyheights.access.PlayerEntityPickAttachedAccess;
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.config.FrostyHeightsConfig;
 import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
@@ -62,6 +63,17 @@ public abstract class EntityMixin implements EntityTicksOnPhantomIceAccess, Enti
 			this.setTicksOnPhantomIce(0);
 		}
 		this.pushViaWind();
+	}
+
+	@Inject(method = "changeLookDirection", at = @At("TAIL"))
+	private void frostyHeights$changeLookDirection(double cursorDeltaX, double cursorDeltaY, CallbackInfo ci) {
+		if (this instanceof PlayerEntityPickAttachedAccess access) {
+			if (access.isPickAttached()) {
+				if (access.getMovementHandler() != null) {
+					access.getMovementHandler().clampYaw();
+				}
+			}
+		}
 	}
 
 	@Unique
