@@ -26,12 +26,12 @@ public class FrostyHeightsItems {
 
 	private static final Map<ItemGroup, Set<Item>> FROSTY_HEIGHTS_ITEM_GROUP_ENTRIES = Maps.newHashMap();
 
-	public static final Item MUSIC_DISC_19 = get("music_disc_19", new FrostyHeightsMusicDiscItem(3, FrostyHeightsSounds.MUSIC_DISC_19.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 170), ItemGroups.FUNCTIONAL);
-	public static final Item MUSIC_DISC_VIVACE = get("music_disc_vivace", new FrostyHeightsMusicDiscItem(4, FrostyHeightsSounds.MUSIC_DISC_VIVACE.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 281), ItemGroups.FUNCTIONAL);
-	public static final Item MUSIC_DISC_OATS = get("music_disc_oats", new FrostyHeightsMusicDiscItem(5, FrostyHeightsSounds.MUSIC_DISC_OATS.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 266), ItemGroups.FUNCTIONAL);
-	public static final Item MUSIC_DISC_POTENT = get("music_disc_potent", new FrostyHeightsMusicDiscItem(6, FrostyHeightsSounds.MUSIC_DISC_POTENT.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 194), ItemGroups.FUNCTIONAL);
-	public static final Item MUSIC_DISC_FRORE = get("music_disc_frore", new FrostyHeightsMusicDiscItem(7, FrostyHeightsSounds.MUSIC_DISC_FRORE.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 160), ItemGroups.FUNCTIONAL);
-	public static final Item MUSIC_DISC_CELLAR = get("music_disc_cellar", new FrostyHeightsMusicDiscItem(8, FrostyHeightsSounds.MUSIC_DISC_CELLAR.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 328), ItemGroups.FUNCTIONAL);
+	public static final Item MUSIC_DISC_19 = get("music_disc_19", new FrostyHeightsMusicDiscItem(3, FrostyHeightsSounds.MUSIC_DISC_19.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 170), ItemGroups.TOOLS);
+	public static final Item MUSIC_DISC_VIVACE = get("music_disc_vivace", new FrostyHeightsMusicDiscItem(4, FrostyHeightsSounds.MUSIC_DISC_VIVACE.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 281), ItemGroups.TOOLS);
+	public static final Item MUSIC_DISC_OATS = get("music_disc_oats", new FrostyHeightsMusicDiscItem(5, FrostyHeightsSounds.MUSIC_DISC_OATS.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 266), ItemGroups.TOOLS);
+	public static final Item MUSIC_DISC_POTENT = get("music_disc_potent", new FrostyHeightsMusicDiscItem(6, FrostyHeightsSounds.MUSIC_DISC_POTENT.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 194), ItemGroups.TOOLS);
+	public static final Item MUSIC_DISC_FRORE = get("music_disc_frore", new FrostyHeightsMusicDiscItem(7, FrostyHeightsSounds.MUSIC_DISC_FRORE.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 160), ItemGroups.TOOLS);
+	public static final Item MUSIC_DISC_CELLAR = get("music_disc_cellar", new FrostyHeightsMusicDiscItem(8, FrostyHeightsSounds.MUSIC_DISC_CELLAR.value(), new QuiltItemSettings().maxCount(1).rarity(Rarity.RARE), 328), ItemGroups.TOOLS);
 
 	public static final Item CLIMBING_PICKAXE = get("climbing_pickaxe", new ClimbingPickaxeItem(new ClimbingPickaxeMaterial(), new QuiltItemSettings()), ItemGroups.TOOLS);
 

@@ -53,6 +53,10 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
 
 			this.climbingMovementHandler.load();
 			this.climbingMovementHandler.handleClimbing();
+
+			if (!this.climbingMovementHandler.isClimbing()) {
+				this.setPickAttached(false);
+			}
 		} else {
 			if (this.climbingMovementHandler != null) {
 				this.climbingMovementHandler.discharge();
