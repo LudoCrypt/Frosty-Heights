@@ -43,21 +43,26 @@ public abstract class EntityMixin implements EntityTicksOnPhantomIceAccess, Enti
 	protected DataTracker dataTracker;
 
 	@Unique
-	private static final TrackedData<Integer> TICKS_ON_PHANTOM_ICE = DataTracker.registerData(Entity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedData<Integer> TICKS_ON_PHANTOM_ICE = DataTracker.registerData(Entity.class,
+			TrackedDataHandlerRegistry.INTEGER);
 
 	@Unique
-	private static final TrackedData<Boolean> PUSHABLE_VIA_WIND = DataTracker.registerData(Entity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Boolean> PUSHABLE_VIA_WIND = DataTracker.registerData(Entity.class,
+			TrackedDataHandlerRegistry.BOOLEAN);
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void frostyHeights$init(EntityType<?> entityType, World world, CallbackInfo ci) {
 		this.dataTracker.startTracking(TICKS_ON_PHANTOM_ICE, 0);
-		this.dataTracker.startTracking(PUSHABLE_VIA_WIND, !FrostyHeightsConfig.windExemptEntities.contains(EntityType.getId(entityType).toString()));
+		this.dataTracker.startTracking(PUSHABLE_VIA_WIND,
+				!FrostyHeightsConfig.windExemptEntities.contains(EntityType.getId(entityType).toString()));
 	}
 
 	@Inject(method = "tick", at = @At("TAIL"))
 	private void frostyHeights$tick(CallbackInfo ci) {
 		Entity entity = ((Entity) (Object) this);
-		if (entity.isOnGround() && entity.getWorld().getBlockState(entity.getBlockPos().down()).isOf(FrostyHeightsBlocks.PHANTOM_ICE) && !entity.isSneaking()) {
+		if (entity.isOnGround()
+				&& entity.getWorld().getBlockState(entity.getBlockPos().down()).isOf(FrostyHeightsBlocks.PHANTOM_ICE)
+				&& !entity.isSneaking()) {
 			this.setTicksOnPhantomIce(this.getTicksOnPhantomIce() + 1);
 		} else {
 			this.setTicksOnPhantomIce(0);
@@ -101,10 +106,12 @@ public abstract class EntityMixin implements EntityTicksOnPhantomIceAccess, Enti
 				scalar = 0.0F;
 			}
 
-			Vec2f cartesian = new Vec2f((float) Math.sin(Math.toRadians(polar.y)), (float) Math.cos(Math.toRadians(polar.y))).multiply(scalar);
+			Vec2f cartesian = new Vec2f((float) Math.sin(Math.toRadians(polar.y)),
+					(float) Math.cos(Math.toRadians(polar.y))).multiply(scalar);
 
 			boolean wasOnGround = entity.isOnGround();
-			entity.move(MovementType.SELF, new Vec3d(cartesian.x, 0.0D, cartesian.y).multiply(1.0 / 4.0D).multiply(1.0D / (wasOnGround ? entity.isSneaking() ? 6.0D : 1.5D : 1.0D)));
+			entity.move(MovementType.SELF, new Vec3d(cartesian.x, 0.0D, cartesian.y).multiply(1.0 / 4.0D)
+					.multiply(1.0D / (wasOnGround ? entity.isSneaking() ? 6.0D : 1.5D : 1.0D)));
 			entity.setOnGround(wasOnGround);
 		}
 	}

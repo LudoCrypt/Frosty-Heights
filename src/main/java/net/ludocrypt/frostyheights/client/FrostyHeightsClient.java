@@ -19,15 +19,17 @@ public class FrostyHeightsClient implements ClientModInitializer {
 	public void onInitializeClient(ModContainer mod) {
 		BlockRenderLayerMap.put(RenderLayer.getTranslucent(), FrostyHeightsBlocks.PHANTOM_ICE);
 
-		ClientPlayNetworking.registerGlobalReceiver(FrostyHeightsWeatherData.WEATHER_UPDATE_PACKET_ID, (client, handler, buf, responseSender) -> {
-			FrostyHeightsWeatherData weatherData = FrostyHeightsWeatherData.fromBuf(buf);
+		ClientPlayNetworking.registerGlobalReceiver(FrostyHeightsWeatherData.WEATHER_UPDATE_PACKET_ID,
+				(client, handler, buf, responseSender) -> {
+					FrostyHeightsWeatherData weatherData = FrostyHeightsWeatherData.fromBuf(buf);
 
-			client.execute(() -> {
-				((WeatherAccess) (client.world)).getWeatherData().copy(weatherData);
-			});
-		});
+					client.execute(() -> {
+						((WeatherAccess) (client.world)).getWeatherData().copy(weatherData);
+					});
+				});
 
-		ParticleFactoryRegistry.getInstance().register(FrostyHeightsParticles.SNOW_FLAKE, SnowFlakeParticle.Factory::new);
+		ParticleFactoryRegistry.getInstance().register(FrostyHeightsParticles.SNOW_FLAKE,
+				SnowFlakeParticle.Factory::new);
 	}
 
 	public static boolean renderWindVisualization() {

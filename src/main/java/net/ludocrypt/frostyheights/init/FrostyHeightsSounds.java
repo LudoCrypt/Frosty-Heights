@@ -30,7 +30,8 @@ public class FrostyHeightsSounds {
 	}
 
 	public static Holder.Reference<SoundEvent> get(String id) {
-		return Registry.m_jktnfzok(Registries.SOUND_EVENT, FrostyHeights.id(id), SoundEvent.createVariableRangeEvent(FrostyHeights.id(id)));
+		return Registry.m_jktnfzok(Registries.SOUND_EVENT, FrostyHeights.id(id),
+				SoundEvent.createVariableRangeEvent(FrostyHeights.id(id)));
 	}
 
 }

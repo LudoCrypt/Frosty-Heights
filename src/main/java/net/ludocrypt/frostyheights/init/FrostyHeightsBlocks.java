@@ -28,25 +28,34 @@ public class FrostyHeightsBlocks {
 
 	private static final Map<ItemGroup, Set<Item>> FROSTY_HEIGHTS_ITEM_GROUP_ENTRIES = Maps.newHashMap();
 
-	public static final Block HIEMARL = get("hiemarl", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.DEEPSLATE)), ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
-	public static final Block COBBLED_HIEMARL = get("cobbled_hiemarl", new Block(QuiltBlockSettings.copyOf(Blocks.COBBLED_DEEPSLATE)), ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
-	public static final Block CLIFFSTONE = get("cliffstone", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.STONE)), ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
-	public static final Block DRAPPERY = get("drappery", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.STONE)), ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
-	public static final Block PHANTOM_ICE = get("phantom_ice", new PhantomIceBlock(QuiltBlockSettings.copyOf(Blocks.BLUE_ICE).nonOpaque()), ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
+	public static final Block HIEMARL = get("hiemarl", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.DEEPSLATE)),
+			ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
+	public static final Block COBBLED_HIEMARL = get("cobbled_hiemarl",
+			new Block(QuiltBlockSettings.copyOf(Blocks.COBBLED_DEEPSLATE)), ItemGroups.BUILDING_BLOCKS,
+			ItemGroups.NATURAL);
+	public static final Block CLIFFSTONE = get("cliffstone", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.STONE)),
+			ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
+	public static final Block DRAPPERY = get("drappery", new PillarBlock(QuiltBlockSettings.copyOf(Blocks.STONE)),
+			ItemGroups.BUILDING_BLOCKS, ItemGroups.NATURAL);
+	public static final Block PHANTOM_ICE = get("phantom_ice",
+			new PhantomIceBlock(QuiltBlockSettings.copyOf(Blocks.BLUE_ICE).nonOpaque()), ItemGroups.BUILDING_BLOCKS,
+			ItemGroups.NATURAL);
 
 	public static void init() {
-		FROSTY_HEIGHTS_ITEM_GROUP_ENTRIES.forEach((itemGroup, items) -> ItemGroupEvents.modifyEntriesEvent(itemGroup).register(new ModifyEntries() {
+		FROSTY_HEIGHTS_ITEM_GROUP_ENTRIES.forEach(
+				(itemGroup, items) -> ItemGroupEvents.modifyEntriesEvent(itemGroup).register(new ModifyEntries() {
 
-			@Override
-			public void modifyEntries(FabricItemGroupEntries entries) {
-				items.forEach(item -> entries.addItem(item));
-			}
+					@Override
+					public void modifyEntries(FabricItemGroupEntries entries) {
+						items.forEach(item -> entries.addItem(item));
+					}
 
-		}));
+				}));
 	}
 
 	private static <B extends Block> B get(String id, B block, ItemGroup... groups) {
-		Registry.register(Registries.ITEM, FrostyHeights.id(id), addToItemGroup(new BlockItem(block, new QuiltItemSettings()), groups));
+		Registry.register(Registries.ITEM, FrostyHeights.id(id),
+				addToItemGroup(new BlockItem(block, new QuiltItemSettings()), groups));
 		return Registry.register(Registries.BLOCK, FrostyHeights.id(id), block);
 	}
 

@@ -47,14 +47,17 @@ public abstract class ServerWorldMixin extends World implements WeatherManagerAc
 	@Unique
 	private FrostyHeightsWeatherManager frostyHeightsWeatherManager;
 
-	protected ServerWorldMixin(MutableWorldProperties mutableWorldProperties, RegistryKey<World> registryKey, Holder<DimensionType> holder, Supplier<Profiler> supplier, boolean bl, boolean bl2, long l, int i) {
+	protected ServerWorldMixin(MutableWorldProperties mutableWorldProperties, RegistryKey<World> registryKey, Holder<DimensionType> holder, Supplier<Profiler> supplier, boolean bl, boolean bl2,
+			long l, int i) {
 		super(mutableWorldProperties, registryKey, holder, supplier, bl, bl2, l, i);
 	}
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void frostyHeights$init(MinecraftServer server, Executor executor, WorldSaveStorage.Session session, ServerWorldProperties worldProperties, RegistryKey<World> registryKey, DimensionOptions dimensionOptions, WorldGenerationProgressListener genProgressListener, boolean debugWorld, long seed, List<Spawner> spawners, boolean shouldTickTime, CallbackInfo ci) {
+	private void frostyHeights$init(MinecraftServer server, Executor executor, WorldSaveStorage.Session session, ServerWorldProperties worldProperties, RegistryKey<World> registryKey,
+			DimensionOptions dimensionOptions, WorldGenerationProgressListener genProgressListener, boolean debugWorld, long seed, List<Spawner> spawners, boolean shouldTickTime, CallbackInfo ci) {
 		if (this.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_KEY)) {
-			this.frostyHeightsWeatherManager = this.getPersistentStateManager().getOrCreate(nbtCompound -> FrostyHeightsWeatherManager.fromNbt(((ServerWorld) (Object) this), nbtCompound), () -> new FrostyHeightsWeatherManager(((ServerWorld) (Object) this)), "hiemal_weather");
+			this.frostyHeightsWeatherManager = this.getPersistentStateManager().getOrCreate(nbtCompound -> FrostyHeightsWeatherManager.fromNbt(((ServerWorld) (Object) this), nbtCompound),
+					() -> new FrostyHeightsWeatherManager(((ServerWorld) (Object) this)), "hiemal_weather");
 		}
 	}
 

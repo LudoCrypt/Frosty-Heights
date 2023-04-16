@@ -12,7 +12,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 public abstract class ServerPlayerEntityMixin implements PlayerEntityInputsAccess {
 
 	@Inject(method = "Lnet/minecraft/server/network/ServerPlayerEntity;updateInput(FFZZ)V", at = @At("HEAD"))
-	private void frostyHeights$updateInput(float sidewaysSpeed, float forwardSpeed, boolean jumping, boolean sneaking, CallbackInfo ci) {
+	private void frostyHeights$updateInput(float sidewaysSpeed, float forwardSpeed, boolean jumping, boolean sneaking,
+			CallbackInfo ci) {
 		this.setSidewaysInputSpeed(sidewaysSpeed);
 		this.setForwardInputSpeed(forwardSpeed);
 	}

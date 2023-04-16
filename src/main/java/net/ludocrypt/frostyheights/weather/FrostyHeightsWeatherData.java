@@ -159,43 +159,53 @@ public class FrostyHeightsWeatherData {
 	}
 
 	public double getWindAmplitude(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindAmplitude(), this.getWeatherSettings().getWindAmplitude());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindAmplitude(),
+				this.getWeatherSettings().getWindAmplitude());
 	}
 
 	public double getWindVelocity(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindVelocity(), this.getWeatherSettings().getWindVelocity());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindVelocity(),
+				this.getWeatherSettings().getWindVelocity());
 	}
 
 	public double getWindPushStrength(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindPushStrength(), this.getWeatherSettings().getWindPushStrength());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getWindPushStrength(),
+				this.getWeatherSettings().getWindPushStrength());
 	}
 
 	public double getVibratoAmplitude(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getVibratoAmplitude(), this.getWeatherSettings().getVibratoAmplitude());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getVibratoAmplitude(),
+				this.getWeatherSettings().getVibratoAmplitude());
 	}
 
 	public double getDarknessScalar(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getDarknessScalar(), this.getWeatherSettings().getDarknessScalar());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getDarknessScalar(),
+				this.getWeatherSettings().getDarknessScalar());
 	}
 
 	public double getMinSnowParticles(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getMinSnowParticles(), this.getWeatherSettings().getMinSnowParticles());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getMinSnowParticles(),
+				this.getWeatherSettings().getMinSnowParticles());
 	}
 
 	public double getMaxSnowParticles(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getMaxSnowParticles(), this.getWeatherSettings().getMaxSnowParticles());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getMaxSnowParticles(),
+				this.getWeatherSettings().getMaxSnowParticles());
 	}
 
 	public double getSnowParticleDistance(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getSnowParticleDistance(), this.getWeatherSettings().getSnowParticleDistance());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getSnowParticleDistance(),
+				this.getWeatherSettings().getSnowParticleDistance());
 	}
 
 	public double getFogDistMinScale(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getFogDistMinScale(), this.getWeatherSettings().getFogDistMinScale());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getFogDistMinScale(),
+				this.getWeatherSettings().getFogDistMinScale());
 	}
 
 	public double getFogDistMaxScale(float tickDelta) {
-		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getFogDistMaxScale(), this.getWeatherSettings().getFogDistMaxScale());
+		return MathHelper.lerp(tickDelta, this.getPrevWeatherSettings().getFogDistMaxScale(),
+				this.getWeatherSettings().getFogDistMaxScale());
 	}
 
 	public FrostyHeightsWeather getPrevWeather() {

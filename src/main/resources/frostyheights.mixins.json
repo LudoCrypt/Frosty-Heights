@@ -4,13 +4,13 @@
 	"package": "net.ludocrypt.frostyheights.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
+		"common.ChunkGeneratorAccessor",
 		"common.EntityMixin",
 		"common.LivingEntityMixin",
 		"common.NoiseRouterDataAccessor",
 		"common.PlayerEntityMixin",
 		"common.ServerPlayerEntityMixin",
 		"common.ServerWorldMixin",
-		"common.ThreadedChunkManagerMixin",
 		"common.VanillaSurfaceRulesAccessor",
 		"common.WorldMixin"
 	],

@@ -2,13 +2,19 @@ package net.ludocrypt.frostyheights.weather;
 
 import net.ludocrypt.frostyheights.access.WeatherAccess;
 import net.ludocrypt.frostyheights.weather.FrostyHeightsWeather.WeatherSettings;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularDistanceFunction;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.CellularReturnType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.DomainWarpType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.FractalType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.NoiseType;
-import net.ludocrypt.frostyheights.world.FastNoiseSampler.RotationType3D;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.CellularDistanceFunction;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.CellularReturnType;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.CellularSettings;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.DomainWarpFractalSettings;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.DomainWarpFractalType;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.DomainWarpSettings;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.DomainWarpType;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.FractalSettings;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.FractalType;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.GeneralSettings;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.NoiseType;
+import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.RotationType3D;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
@@ -28,8 +34,15 @@ import net.minecraft.world.World;
  */
 public class FrostyHeightsWeatherManager extends PersistentState {
 
-	public static final FastNoiseSampler AMPLITUDE_SAMPLER = FastNoiseSampler.create(false, 0, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0.01D, FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.BasicGrid, 70.0D);
-	public static final FastNoiseSampler DIRECTION_SAMPLER = FastNoiseSampler.create(false, 1, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0.005D, FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 2.0D, CellularDistanceFunction.EuclideanSq, CellularReturnType.Distance, 1.0, DomainWarpType.OpenSimplex2Reduced, 100.0D);
+	public static final FastNoiseSampler AMPLITUDE_SAMPLER = new FastNoiseSampler(new GeneralSettings(false, NoiseType.OpenSimplex2S, RotationType3D.ImproveXZPlanes, 0, 0.01D),
+			new FractalSettings(FractalType.PingPong, 6, 1.8D, 0.5D, -0.2D, 1.4D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.0D),
+			new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 70.0D, 0.006D, 4, 0.0D),
+			new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpIndependent, RotationType3D.ImproveXZPlanes, 70.0D, 0.006D, 4, 1.8D, 0.4D));
+
+	public static final FastNoiseSampler DIRECTION_SAMPLER = new FastNoiseSampler(new GeneralSettings(false, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 0, 0.005D),
+			new FractalSettings(FractalType.FBm, 4, 2.0D, 0.4D, -0.1D, 1.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.0D),
+			new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 100.0D, 0.006D, 1, 0.0D),
+			new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 1.0D, 0.0D));
 
 	private final ServerWorld world;
 
@@ -71,7 +84,8 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 			this.getWeatherData().setNextWeather(this.getWeatherData().getCurrentWeather().getNext(this.world.getRandom()));
 
 			// Set time till next weather change
-			this.getWeatherData().setTicksUntilNextWeather(MathHelper.nextBetween(this.world.getRandom(), this.getWeatherData().getNextWeather().getMinTime(), this.getWeatherData().getNextWeather().getMaxTime()));
+			this.getWeatherData()
+					.setTicksUntilNextWeather(MathHelper.nextBetween(this.world.getRandom(), this.getWeatherData().getNextWeather().getMinTime(), this.getWeatherData().getNextWeather().getMaxTime()));
 		} else {
 			// Count down time until weather changes if weather cycle is enabled.
 			if (this.world.getGameRules().getBoolean(GameRules.DO_WEATHER_CYCLE)) {
@@ -172,7 +186,8 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 
 	public static Vec2f getWindPolar(World world, Vec3d pos, float tickDelta) {
 		double windDelta = ((WeatherAccess) (world)).getWeatherData().getWindDelta();
-		double amplitude = MathHelper.clamp((AMPLITUDE_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), ((WeatherAccess) (world)).getWeatherData().getAmplitudeSeed()) + 1.0D / 2.0D) * ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(1.0F), 0.0D, 1.0D);
+		double amplitude = MathHelper.clamp((AMPLITUDE_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), ((WeatherAccess) (world)).getWeatherData().getAmplitudeSeed()) + 1.0D / 2.0D)
+				* ((WeatherAccess) (world)).getWeatherData().getWindAmplitude(1.0F), 0.0D, 1.0D);
 		double theta = DIRECTION_SAMPLER.GetNoise(pos.getX(), windDelta, pos.getZ(), ((WeatherAccess) (world)).getWeatherData().getDirectionSeed()) * 360.0D;
 
 		amplitude *= getScalingFactor(pos.getY());

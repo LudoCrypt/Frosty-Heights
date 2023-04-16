@@ -8,8 +8,11 @@ import net.minecraft.util.Identifier;
 
 public class FrostyHeightsReverb extends StaticReverbEffect {
 
-	public FrostyHeightsReverb(boolean enabled, float density, float diffusion, float gain, float gainHF, float decayTime, float decayHFRatio, float airAbsorptionGainHF, float reflectionsGainBase, float lateReverbGainBase, float reflectionsDelay, float lateReverbDelay, int decayHFLimit) {
-		super(enabled, density, diffusion, gain, gainHF, decayTime, decayHFRatio, airAbsorptionGainHF, reflectionsGainBase, lateReverbGainBase, reflectionsDelay, lateReverbDelay, decayHFLimit);
+	public FrostyHeightsReverb(boolean enabled, float density, float diffusion, float gain, float gainHF,
+			float decayTime, float decayHFRatio, float airAbsorptionGainHF, float reflectionsGainBase,
+			float lateReverbGainBase, float reflectionsDelay, float lateReverbDelay, int decayHFLimit) {
+		super(enabled, density, diffusion, gain, gainHF, decayTime, decayHFRatio, airAbsorptionGainHF,
+				reflectionsGainBase, lateReverbGainBase, reflectionsDelay, lateReverbDelay, decayHFLimit);
 	}
 
 	@Override
@@ -99,7 +102,9 @@ public class FrostyHeightsReverb extends StaticReverbEffect {
 		}
 
 		public FrostyHeightsReverb build() {
-			return new FrostyHeightsReverb(this.enabled, this.density, this.diffusion, this.gain, this.gainHF, this.decayTime, this.decayHFRatio, this.airAbsorptionGainHF, this.reflectionsGainBase, this.lateReverbGainBase, this.reflectionsDelay, this.lateReverbDelay, this.decayHFLimit);
+			return new FrostyHeightsReverb(this.enabled, this.density, this.diffusion, this.gain, this.gainHF,
+					this.decayTime, this.decayHFRatio, this.airAbsorptionGainHF, this.reflectionsGainBase,
+					this.lateReverbGainBase, this.reflectionsDelay, this.lateReverbDelay, this.decayHFLimit);
 		}
 
 	}

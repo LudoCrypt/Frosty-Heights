@@ -44,12 +44,17 @@ public class WorldRendererMixin {
 	/* Visualizes the wind */
 	// TODO: Remove
 	@Inject(method = "Lnet/minecraft/client/render/WorldRenderer;render(Lnet/minecraft/client/util/math/MatrixStack;FJZLnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/GameRenderer;Lnet/minecraft/client/render/LightmapTextureManager;Lorg/joml/Matrix4f;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDDLorg/joml/Matrix4f;)V", ordinal = 2, shift = Shift.AFTER))
-	private void frostyHeights$render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo ci) {
+	private void frostyHeights$render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
+			Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager,
+			Matrix4f projectionMatrix, CallbackInfo ci) {
 		if (FrostyHeightsClient.renderWindVisualization()) {
 			int size = 20;
 			for (int x = -size; x < size; x++) {
 				for (int z = -size; z < size; z++) {
-					Vec2f wind = FrostyHeightsWeatherManager.getWindPolar(world, new Vec3d(x + Math.floor(client.gameRenderer.getCamera().getPos().getX()), client.gameRenderer.getCamera().getPos().getY(), z + Math.floor(client.gameRenderer.getCamera().getPos().getZ())));
+					Vec2f wind = FrostyHeightsWeatherManager.getWindPolar(world,
+							new Vec3d(x + Math.floor(client.gameRenderer.getCamera().getPos().getX()),
+									client.gameRenderer.getCamera().getPos().getY(),
+									z + Math.floor(client.gameRenderer.getCamera().getPos().getZ())));
 
 					RenderSystem.enableBlend();
 					RenderSystem.defaultBlendFunc();
@@ -63,8 +68,12 @@ public class WorldRendererMixin {
 
 					matrices.push();
 
-					matrices.translate(-client.gameRenderer.getCamera().getPos().getX(), -client.gameRenderer.getCamera().getPos().getY(), -client.gameRenderer.getCamera().getPos().getZ());
-					matrices.translate(Math.floor(client.gameRenderer.getCamera().getPos().getX()), Math.floor(client.gameRenderer.getCamera().getPos().getY()), Math.floor(client.gameRenderer.getCamera().getPos().getZ()));
+					matrices.translate(-client.gameRenderer.getCamera().getPos().getX(),
+							-client.gameRenderer.getCamera().getPos().getY(),
+							-client.gameRenderer.getCamera().getPos().getZ());
+					matrices.translate(Math.floor(client.gameRenderer.getCamera().getPos().getX()),
+							Math.floor(client.gameRenderer.getCamera().getPos().getY()),
+							Math.floor(client.gameRenderer.getCamera().getPos().getZ()));
 					matrices.translate(x, 0, z);
 
 					matrices.translate(0.5D, 0, 0.5D);
@@ -77,10 +86,14 @@ public class WorldRendererMixin {
 					float thickness = 8.0F;
 
 					float col = wind.x;
-					bufferBuilder.vertex(matrix4f, (8.0F + (thickness / 2.0F)) / 16.0F, -1.0F, 0.0F / 16.0F).color(col, col, col, 1.0F).next();
-					bufferBuilder.vertex(matrix4f, (8.0F - (thickness / 2.0F)) / 16.0F, -1.0F, 0.0F / 16.0F).color(col, col, col, 1.0F).next();
-					bufferBuilder.vertex(matrix4f, 8.0F / 16.0F, -1.0F, 16.0F / 16.0F).color(col, col, col, 1.0F).next();
-					bufferBuilder.vertex(matrix4f, 8.0F / 16.0F, -1.0F, 16.0F / 16.0F).color(col, col, col, 1.0F).next();
+					bufferBuilder.vertex(matrix4f, (8.0F + (thickness / 2.0F)) / 16.0F, -1.0F, 0.0F / 16.0F)
+							.color(col, col, col, 1.0F).next();
+					bufferBuilder.vertex(matrix4f, (8.0F - (thickness / 2.0F)) / 16.0F, -1.0F, 0.0F / 16.0F)
+							.color(col, col, col, 1.0F).next();
+					bufferBuilder.vertex(matrix4f, 8.0F / 16.0F, -1.0F, 16.0F / 16.0F).color(col, col, col, 1.0F)
+							.next();
+					bufferBuilder.vertex(matrix4f, 8.0F / 16.0F, -1.0F, 16.0F / 16.0F).color(col, col, col, 1.0F)
+							.next();
 					tessellator.draw();
 
 					matrices.pop();

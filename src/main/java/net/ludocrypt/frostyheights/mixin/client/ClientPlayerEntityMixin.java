@@ -92,7 +92,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private int getSnowParticleCount(FrostyHeightsWeatherData data, int slices, int slice) {
 		double windStrength = (FrostyHeightsWeatherManager.getWindPolar(this.client.world, this.getPos().add(0.0D, slice, 0.0D)).x);
 		double heightScalar = FrostyHeightsWeatherManager.getScalingFactor(this.getY() + slice);
-		double wastelandsScalar = FrostyHeightsWeatherManager.piecewiseScalar(this.getY() + slice, 1.0D, 1.0D, 1.0D, 500.0D, 1.5D);
+		double wastelandsScalar = FrostyHeightsWeatherManager.piecewiseScalar(this.getY() + slice, 1.0D, 1.0D, 1.0D, 200.0D, 1.5D);
 
 		double minSnowParticles = data.getMinSnowParticles(1.0F) * heightScalar + wastelandsScalar;
 		double maxSnowParticles = data.getMaxSnowParticles(1.0F) * heightScalar + wastelandsScalar;

@@ -28,7 +28,8 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 
 	private double speed;
 
-	protected SnowFlakeParticle(ClientWorld clientWorld, double x, double y, double z, double dx, double dy, double dz) {
+	protected SnowFlakeParticle(ClientWorld clientWorld, double x, double y, double z, double dx, double dy,
+			double dz) {
 		super(clientWorld, x, y, z, dx, dy, dz);
 		this.setMaxAge(300);
 		this.arcStrength = MathHelper.nextDouble(this.random, 0.2D, 0.7D);
@@ -36,9 +37,11 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 
 		// Set velocity early so there's no slow start
 		Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, new Vec3d(this.x, this.y, this.z));
-		Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(Math.toRadians(polar.y + arcDeviation)), polar.x * (float) Math.cos(Math.toRadians(polar.y + arcDeviation)));
+		Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(Math.toRadians(polar.y + arcDeviation)),
+				polar.x * (float) Math.cos(Math.toRadians(polar.y + arcDeviation)));
 
-		this.setVelocity(cartesian.x - this.random.nextDouble() / 10.0D, (polar.x - 1.0D) * 0.07D, cartesian.y - this.random.nextDouble() / 10.0D);
+		this.setVelocity(cartesian.x - this.random.nextDouble() / 10.0D, (polar.x - 1.0D) * 0.07D,
+				cartesian.y - this.random.nextDouble() / 10.0D);
 	}
 
 	@Override
@@ -50,20 +53,27 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 	public void tick() {
 		double snowParticleDistance = ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(1.0F);
 
-		if (this.client.player.getEyePos().squaredDistanceTo(new Vec3d(this.x, this.y, this.z)) >= snowParticleDistance * snowParticleDistance) {
+		if (this.client.player.getEyePos().squaredDistanceTo(new Vec3d(this.x, this.y, this.z)) >= snowParticleDistance
+				* snowParticleDistance) {
 			this.markDead();
 		}
 
 		if (!((ParticleAccessor) this).getStoppedByCollision()) {
 			Vec2f polar = FrostyHeightsWeatherManager.getWindPolar(this.world, new Vec3d(this.x, this.y, this.z));
 			double dirInRadians = Math.toRadians(polar.y + this.arcDeviation);
-			Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(dirInRadians), polar.x * (float) Math.cos(dirInRadians));
-			this.setVelocity(MathHelper.lerp(polar.x * this.arcStrength, this.velocityX, cartesian.x - this.random.nextDouble() / 10.0D), (polar.x - 1.0D) * 0.07D, MathHelper.lerp(polar.x * this.arcStrength, this.velocityZ, cartesian.y - this.random.nextDouble() / 10.0D));
+			Vec2f cartesian = new Vec2f(polar.x * (float) Math.sin(dirInRadians),
+					polar.x * (float) Math.cos(dirInRadians));
+			this.setVelocity(
+					MathHelper.lerp(polar.x * this.arcStrength, this.velocityX,
+							cartesian.x - this.random.nextDouble() / 10.0D),
+					(polar.x - 1.0D) * 0.07D, MathHelper.lerp(polar.x * this.arcStrength, this.velocityZ,
+							cartesian.y - this.random.nextDouble() / 10.0D));
 		}
 
 		super.tick();
 
-		this.speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY + this.velocityZ * this.velocityZ);
+		this.speed = Math.sqrt(
+				this.velocityX * this.velocityX + this.velocityY * this.velocityY + this.velocityZ * this.velocityZ);
 		this.age += 10 * (1 - Math.min(this.speed, 1.0D));
 
 		// Prevents snowflakes from piling up in corners
@@ -77,7 +87,10 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 		float darkness = (float) ((WeatherAccess) (this.world)).getWeatherData().getDarknessScalar(tickDelta);
 		this.setColor(darkness, darkness, darkness);
 
-		this.setColorAlpha(MathHelper.clamp(1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z)) / ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(tickDelta)), 0.0F, 1.0F));
+		this.setColorAlpha(MathHelper.clamp(
+				1.0F - (float) (this.client.player.getEyePos().distanceTo(new Vec3d(this.x, this.y, this.z))
+						/ ((WeatherAccess) this.world).getWeatherData().getSnowParticleDistance(tickDelta)),
+				0.0F, 1.0F));
 
 		// Fade in and out
 		float fade = 1.0F;
@@ -107,7 +120,8 @@ public class SnowFlakeParticle extends SpriteBillboardParticle {
 			this.spriteProvider = spriteProvider;
 		}
 
-		public Particle createParticle(DefaultParticleType defaultParticleType, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+		public Particle createParticle(DefaultParticleType defaultParticleType, ClientWorld clientWorld, double d,
+				double e, double f, double g, double h, double i) {
 			SnowFlakeParticle snowFlake = new SnowFlakeParticle(clientWorld, d, e, f, g, h, i);
 			snowFlake.setSprite(this.spriteProvider);
 			return snowFlake;

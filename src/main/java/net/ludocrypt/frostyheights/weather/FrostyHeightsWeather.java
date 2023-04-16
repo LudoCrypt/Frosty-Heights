@@ -38,7 +38,12 @@ public enum FrostyHeightsWeather {
 	}
 
 	public WeatherSettings cloneSettings() {
-		return this.equals(UNDETERMINED) ? new WeatherSettings() : new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(), this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(), this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(), this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance(), this.weatherSettings.getFogDistMinScale(), this.weatherSettings.getFogDistMaxScale());
+		return this.equals(UNDETERMINED) ? new WeatherSettings()
+				: new WeatherSettings(this.weatherSettings.getWindAmplitude(), this.weatherSettings.getWindVelocity(),
+						this.weatherSettings.getWindPushStrength(), this.weatherSettings.getVibratoAmplitude(),
+						this.weatherSettings.getDarknessScalar(), this.weatherSettings.getMinSnowParticles(),
+						this.weatherSettings.getMaxSnowParticles(), this.weatherSettings.getSnowParticleDistance(),
+						this.weatherSettings.getFogDistMinScale(), this.weatherSettings.getFogDistMaxScale());
 	}
 
 	public FrostyHeightsWeather getNext(RandomGenerator random) {
@@ -132,7 +137,9 @@ public enum FrostyHeightsWeather {
 			this.fogDistMaxScale = 1.0D;
 		}
 
-		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength, double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles, double snowParticleDistance, double fogDistMinScale, double fogDistMaxScale) {
+		private WeatherSettings(double windAmplitude, double windVelocity, double windPushStrength,
+				double vibratoAmplitude, double darknessScalar, double minSnowParticles, double maxSnowParticles,
+				double snowParticleDistance, double fogDistMinScale, double fogDistMaxScale) {
 			this.undetermined = false;
 			this.windAmplitude = windAmplitude;
 			this.windVelocity = windVelocity;
@@ -233,7 +240,13 @@ public enum FrostyHeightsWeather {
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof WeatherSettings settings) {
-				return settings.getWindAmplitude() == this.getWindAmplitude() && settings.getWindVelocity() == this.getWindVelocity() && settings.getWindPushStrength() == this.getWindPushStrength() && settings.getVibratoAmplitude() == this.getVibratoAmplitude() && settings.getDarknessScalar() == this.getDarknessScalar() && settings.getFogDistMinScale() == this.getFogDistMinScale() && settings.getFogDistMaxScale() == this.getFogDistMaxScale();
+				return settings.getWindAmplitude() == this.getWindAmplitude()
+						&& settings.getWindVelocity() == this.getWindVelocity()
+						&& settings.getWindPushStrength() == this.getWindPushStrength()
+						&& settings.getVibratoAmplitude() == this.getVibratoAmplitude()
+						&& settings.getDarknessScalar() == this.getDarknessScalar()
+						&& settings.getFogDistMinScale() == this.getFogDistMinScale()
+						&& settings.getFogDistMaxScale() == this.getFogDistMaxScale();
 			}
 			return this == obj;
 		}
@@ -250,7 +263,8 @@ public enum FrostyHeightsWeather {
 			double fogDistMinScale = buf.readDouble();
 			double fogDistMaxScale = buf.readDouble();
 
-			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar, minSnowParticles, maxSnowParticles, snowParticleDistance, fogDistMinScale, fogDistMaxScale);
+			return new WeatherSettings(windAmplitude, windVelocity, windPushStrength, vibratoAmplitude, darknessScalar,
+					minSnowParticles, maxSnowParticles, snowParticleDistance, fogDistMinScale, fogDistMaxScale);
 		}
 
 		public void writeBuf(PacketByteBuf buf) {
@@ -280,7 +294,10 @@ public enum FrostyHeightsWeather {
 		}
 
 		public WeatherSettings clone() {
-			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(), this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(), this.getMaxSnowParticles(), this.getSnowParticleDistance(), this.getFogDistMinScale(), this.getFogDistMaxScale());
+			return new WeatherSettings(this.getWindAmplitude(), this.getWindVelocity(), this.getWindPushStrength(),
+					this.getVibratoAmplitude(), this.getDarknessScalar(), this.getMinSnowParticles(),
+					this.getMaxSnowParticles(), this.getSnowParticleDistance(), this.getFogDistMinScale(),
+					this.getFogDistMaxScale());
 		}
 
 		public void stepTowards(WeatherSettings settings, double steps) {
@@ -319,7 +336,8 @@ public enum FrostyHeightsWeather {
 		}
 
 		public void stepSnowParticleDistance(WeatherSettings settings, double steps) {
-			this.setSnowParticleDistance(step(steps, this.getSnowParticleDistance(), settings.getSnowParticleDistance()));
+			this.setSnowParticleDistance(
+					step(steps, this.getSnowParticleDistance(), settings.getSnowParticleDistance()));
 		}
 
 		public void stepFogDistMinScale(WeatherSettings settings, double steps) {

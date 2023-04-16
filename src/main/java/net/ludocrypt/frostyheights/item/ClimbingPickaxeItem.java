@@ -23,8 +23,10 @@ public class ClimbingPickaxeItem extends ToolItem {
 		PlayerEntity player = context.getPlayer();
 
 		if (!context.getWorld().isClient()) {
-			if (context.getSide().getAxis() != Axis.Y && context.getHitPos().squaredDistanceTo(player.getEyePos()) < 0.2D) {
-				((PlayerEntityPickAttachedAccess) player).setPickAttached(!((PlayerEntityPickAttachedAccess) player).isPickAttached());
+			if (context.getSide().getAxis() != Axis.Y
+					&& context.getHitPos().squaredDistanceTo(player.getEyePos()) < 0.2D) {
+				((PlayerEntityPickAttachedAccess) player)
+						.setPickAttached(!((PlayerEntityPickAttachedAccess) player).isPickAttached());
 				return ActionResult.SUCCESS;
 			}
 		}

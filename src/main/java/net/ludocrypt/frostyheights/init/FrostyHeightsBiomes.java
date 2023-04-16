@@ -14,6 +14,8 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 public class FrostyHeightsBiomes {
 
 	public static final RegistryKey<Biome> HIEMAL_BARRENS = get("hiemal_barrens");
+	public static final RegistryKey<Biome> HIEMAL_CLEAR = get("hiemal_clear");
+	public static final RegistryKey<Biome> HIEMAL_OVERHANG = get("hiemal_overhang");
 
 	public static void init() {
 		get("frosty_heights_chunk_generator", NoiseIcicleChunkGenerator.CODEC);

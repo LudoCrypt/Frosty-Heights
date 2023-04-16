@@ -18,9 +18,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEntityPickAttachedAccess, PlayerEntityInputsAccess {
+public abstract class PlayerEntityMixin extends LivingEntity
+		implements PlayerEntityPickAttachedAccess, PlayerEntityInputsAccess {
 
-	private static final TrackedData<Boolean> PICK_ATTACHED = DataTracker.registerData(PlayerEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Boolean> PICK_ATTACHED = DataTracker.registerData(PlayerEntity.class,
+			TrackedDataHandlerRegistry.BOOLEAN);
 
 	@Unique
 	private float sidewaysInputSpeed = 0.0F;

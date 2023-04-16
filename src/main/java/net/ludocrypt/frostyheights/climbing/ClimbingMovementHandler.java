@@ -68,8 +68,9 @@ public class ClimbingMovementHandler {
 			World world = this.player.world;
 			BlockPos blockPos = this.player.getBlockPos();
 			Vec3d pos = this.player.getPos();
-			
-			this.player.move(MovementType.SELF, getCartesianMovement(0.0D, sidewaysSpeed / 20.0D, 0.0D, this.player.getYaw()));
+
+			this.player.move(MovementType.SELF,
+					getCartesianMovement(0.0D, sidewaysSpeed / 20.0D, 0.0D, this.player.getYaw()));
 
 //			if (this.canClimbOn(world, blockPos.east()) && this.canClimbOn(world, blockPos.south())) {
 //				this.player.move(MovementType.SELF, getCartesianMovement(0.0D, sidewaysSpeed / 200.0D, 0.0D, this.player.getYaw()));
@@ -112,7 +113,10 @@ public class ClimbingMovementHandler {
 	}
 
 	public Vec3d getFaceOffset(Vec3i pos, Direction dir, double reach) {
-		return Vec3d.ofCenter(pos).add(new Vec3d(dir.getAxis() == Axis.X ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D, dir.getAxis() == Axis.Y ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D, dir.getAxis() == Axis.Z ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D));
+		return Vec3d.ofCenter(pos).add(new Vec3d(
+				dir.getAxis() == Axis.X ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D,
+				dir.getAxis() == Axis.Y ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D,
+				dir.getAxis() == Axis.Z ? dir.getDirection() == AxisDirection.POSITIVE ? reach : -reach : 0.0D));
 	}
 
 	public Vec3d swapAxis(Vec3d original, Vec3d swap, Axis axis) {

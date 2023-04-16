@@ -27,10 +27,12 @@ import net.minecraft.client.world.ClientWorld;
 public class LightmapTextureManagerMixin {
 
 	@Inject(method = "update", at = @At(value = "INVOKE", target = "Lorg/joml/Vector3f;x()F", ordinal = 1, shift = Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
-	private void frostyheights$update(float delta, CallbackInfo ci, ClientWorld clientWorld, float f, float g, float h, float i, float j, float l, float k, Vector3f vec3f, float m, Vector3f color, int n, int o) {
+	private void frostyheights$update(float delta, CallbackInfo ci, ClientWorld clientWorld, float f, float g, float h,
+			float i, float j, float l, float k, Vector3f vec3f, float m, Vector3f color, int n, int o) {
 		if (clientWorld.getRegistryKey().equals(FrostyHeightsWorld.THE_HIEMAL_KEY)) {
 			if (n < 9 && o < 9) {
-				float weatherDarkening = (float) ((WeatherAccess) (clientWorld)).getWeatherData().getDarknessScalar(delta);
+				float weatherDarkening = (float) ((WeatherAccess) (clientWorld)).getWeatherData()
+						.getDarknessScalar(delta);
 				color.mul(weatherDarkening);
 			}
 
