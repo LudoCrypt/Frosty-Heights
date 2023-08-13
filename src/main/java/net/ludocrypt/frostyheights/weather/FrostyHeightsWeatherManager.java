@@ -177,7 +177,7 @@ public class FrostyHeightsWeatherManager extends PersistentState {
 	}
 
 	public static Vec2f getWindPolar(Entity entity) {
-		return getWindPolar(entity.world, entity.getPos(), 1.0F);
+		return getWindPolar(entity.getWorld(), entity.getPos(), 1.0F);
 	}
 
 	public static Vec2f getWindPolar(World world, Vec3d pos) {

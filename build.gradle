@@ -33,15 +33,12 @@ dependencies {
 
 	modImplementation libs.quilted.fabric.api
 
-	includeMod libs.ladysnake.satin
 	modImplementation libs.terraformersmc.modmenu
 
 	includeMod libs.midnight.lib
 
-	includeMod libs.ludocrypt.limlib.effects
-	includeMod libs.ludocrypt.limlib.registry
-	includeMod libs.ludocrypt.limlib.render
-	includeMod libs.ludocrypt.limlib.world
+	includeMod libs.ludocrypt.limlib
+	includeMod libs.ludocrypt.specialmodels
 }
 
 def includeMod(var dep) {

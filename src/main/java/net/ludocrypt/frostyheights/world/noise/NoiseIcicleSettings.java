@@ -3,8 +3,8 @@ package net.ludocrypt.frostyheights.world.noise;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-public class NoiseIcicleSamplers {
-	public static final Codec<NoiseIcicleSamplers> CODEC = RecordCodecBuilder.create((instance) -> {
+public class NoiseIcicleSettings {
+	public static final Codec<NoiseIcicleSettings> CODEC = RecordCodecBuilder.create((instance) -> {
 		return instance.group(FastNoiseSampler.CODEC.fieldOf("cell_noise").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.cellNoise;
 		}), FastNoiseSampler.CODEC.fieldOf("translate_x_noise").stable().forGetter((chunkGenerator) -> {
@@ -19,7 +19,7 @@ public class NoiseIcicleSamplers {
 			return chunkGenerator.pokeNoise;
 		}), FastNoiseSampler.CODEC.fieldOf("spaghetti_poke_noise").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.spaghettiPokeNoise;
-		})).apply(instance, instance.stable(NoiseIcicleSamplers::new));
+		})).apply(instance, instance.stable(NoiseIcicleSettings::new));
 	});
 
 	/* Icicle Noisemap (Determines where Icicles generate) */
@@ -39,7 +39,7 @@ public class NoiseIcicleSamplers {
 	/* Icicle Bubbles Noisemap (Determines the crevices that form bulbs) */
 	public final FastNoiseSampler spaghettiPokeNoise;
 
-	public NoiseIcicleSamplers(FastNoiseSampler cellNoise, FastNoiseSampler translateXNoise, FastNoiseSampler translateZNoise, FastNoiseSampler refineXNoise, FastNoiseSampler refineZNoise,
+	public NoiseIcicleSettings(FastNoiseSampler cellNoise, FastNoiseSampler translateXNoise, FastNoiseSampler translateZNoise, FastNoiseSampler refineXNoise, FastNoiseSampler refineZNoise,
 			FastNoiseSampler pokeNoise, FastNoiseSampler spaghettiPokeNoise) {
 		this.cellNoise = cellNoise;
 		this.translateXNoise = translateXNoise;

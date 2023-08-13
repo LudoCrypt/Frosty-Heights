@@ -5,8 +5,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
-import com.google.common.collect.ImmutableMap;
+import org.apache.commons.compress.utils.Lists;
+
 import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -26,11 +28,13 @@ import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.FractalType;
 import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.GeneralSettings;
 import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.NoiseType;
 import net.ludocrypt.frostyheights.world.noise.FastNoiseSampler.RotationType3D;
-import net.ludocrypt.frostyheights.world.noise.IcicleShape;
 import net.ludocrypt.frostyheights.world.noise.NoiseIcicleBiomeSource;
-import net.ludocrypt.frostyheights.world.noise.NoiseIciclePoint;
-import net.ludocrypt.frostyheights.world.noise.NoiseIciclePointSampler;
-import net.ludocrypt.frostyheights.world.noise.NoiseIcicleSamplers;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleLayer;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleNoiseShape;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleSettings;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleShape;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleWorldSampler;
+import net.ludocrypt.frostyheights.world.noise.NoiseIcicleWorldSampler.OrderedBiome;
 import net.ludocrypt.limlib.registry.registration.LimlibWorld.RegistryProvider;
 import net.ludocrypt.limlib.world.chunk.LiminalChunkGenerator;
 import net.minecraft.registry.RegistryKeys;
@@ -53,90 +57,87 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 
 	public static final Codec<NoiseIcicleChunkGenerator> CODEC = RecordCodecBuilder.create((instance) -> {
-		return instance.group(NoiseIcicleSamplers.CODEC.fieldOf("icicle_samplers").stable().forGetter((chunkGenerator) -> {
-			return chunkGenerator.icicleSamplers;
-		}), NoiseIciclePointSampler.CODEC.fieldOf("icicle_point_sampler").stable().forGetter((chunkGenerator) -> {
+		return instance.group(NoiseIcicleWorldSampler.CODEC.fieldOf("icicle_point_sampler").stable().forGetter((chunkGenerator) -> {
 			return chunkGenerator.iciclePointSampler;
 		})).apply(instance, instance.stable(NoiseIcicleChunkGenerator::new));
 	});
 
-	public final NoiseIcicleSamplers icicleSamplers;
-	public final NoiseIciclePointSampler iciclePointSampler;
+	public final NoiseIcicleWorldSampler iciclePointSampler;
 	public final BiomeSource biomeSource;
 
 	public static NoiseIcicleChunkGenerator getHiemal(RegistryProvider registry) {
-		return getHiemalDefaultFastNoise(registry);
+		return getHiemalDefault(registry);
 	}
 
-	public static NoiseIcicleChunkGenerator getHiemalDefaultFastNoise(RegistryProvider registry) {
-		return new NoiseIcicleChunkGenerator(
-				new NoiseIcicleSamplers(
-						new FastNoiseSampler(new GeneralSettings(true, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 1, 0.007D), new FractalSettings(FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D),
-								new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 0.4D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2, DomainWarpFractalType.DomainWarpIndependent, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 2.3D, 0.4D)),
+	public static NoiseIcicleChunkGenerator getHiemalDefault(RegistryProvider registry) {
+		NoiseIcicleSettings defaultSettings = new NoiseIcicleSettings(
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 2, 0.01D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
-								new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+				new FastNoiseSampler(new GeneralSettings(true, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 1, 0.007D), new FractalSettings(FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 0.4D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2, DomainWarpFractalType.DomainWarpIndependent, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 2.3D, 0.4D)),
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 3, 0.01D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
-								new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 2, 0.01D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 4, 0.007D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
-								new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 3, 0.01D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 5, 0.007D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
-								new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 4, 0.007D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 6, 0.01D),
-								new FractalSettings(FractalType.FBm, 4, 1.5D, 1.0D, 0.4D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 1.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 5, 0.007D), new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
 
-						new FastNoiseSampler(new GeneralSettings(false, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 7, 0.03D),
-								new FractalSettings(FractalType.PingPong, 1, 0.0D, 0.0D, 0.0D, 3.2D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D),
-								new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 25.0D, 0.03D, 1, 0.0D),
-								new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D))),
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 6, 0.01D), new FractalSettings(FractalType.FBm, 4, 1.5D, 1.0D, 0.4D, 0.0D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 1.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
 
-				new NoiseIciclePointSampler(ImmutableMap.of(
+				new FastNoiseSampler(new GeneralSettings(false, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 7, 0.03D), new FractalSettings(FractalType.PingPong, 1, 0.0D, 0.0D, 0.0D, 3.2D),
+						new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D),
+						new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 25.0D, 0.03D, 1, 0.0D),
+						new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)
 
-						registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_CLEAR),
-						new IcicleShape(new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.0015D),
-								new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
-								new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D)),
+				));
 
-//								new NoiseIciclePoint(0.15D, -0.9D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D)
-								new NoiseIciclePoint(0.15D, -0.9D, 5.0D, 5.0D, 1.0D, 1.0D, 1.5D, 1.5D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D)
+		FastNoiseSampler hiemalClearLayerSampler = new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.0015D),
+				new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+				new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
+				new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D));
 
-								, 0.6)
+		NoiseIcicleLayer hiemalClearLayer = new NoiseIcicleLayer(hiemalClearLayerSampler, defaultSettings, new NoiseIcicleShape(0.15D, -0.9D, 5.0D, 5.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D), 0.7);
 
-						, registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_OVERHANG),
-						new IcicleShape(new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.0015D),
-								new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-								new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
-								new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D)),
+		FastNoiseSampler hiemalOverhangLayerSampler = new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.0015D),
+				new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+				new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
+				new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D));
 
-//								new NoiseIciclePoint(0.2D, -0.5D, 2.0D, 2.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 137.0D, 50.0D, 265.0D, 10.0D)
-								new NoiseIciclePoint(0.2D, -0.5D, 5.0D, 5.0D, 1.0D, 1.0D, 1.5D, 1.5D, 1.0D, 0.0D, 200.0D, 30.0D, 265.0D, 10.0D)
+		NoiseIcicleLayer hiemalOverhangLayer = new NoiseIcicleLayer(hiemalOverhangLayerSampler, defaultSettings,
+				new NoiseIcicleShape(0.2D, -0.5D, 5.0D, 5.0D, 1.0D, 0.0D, 200.0D, 30.0D, 265.0D, 10.0D), 0.35);
 
-								, 0.4)
+		NoiseIcicleLayer hiemalLayer = new NoiseIcicleLayer(defaultSettings.translateXNoise, defaultSettings,
+				new NoiseIcicleShape(0.125D, -0.8D, 5.0D, 5.0D, 1.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D), 0.0);
 
-				), registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_BARRENS),
-						new NoiseIciclePoint(0.125D, -0.8D, 5.0D, 5.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 137.0D, 215.0D, 265.0D, 10.0D)));
+		List<Pair<OrderedBiome, NoiseIcicleLayer>> list = Lists.newArrayList();
+
+		list.add(Pair.of(new OrderedBiome(0, registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_CLEAR)), hiemalClearLayer));
+		list.add(Pair.of(new OrderedBiome(1, registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_OVERHANG)), hiemalOverhangLayer));
+		list.add(Pair.of(new OrderedBiome(2, registry.get(RegistryKeys.BIOME).getHolderOrThrow(FrostyHeightsBiomes.HIEMAL_BARRENS)), hiemalLayer));
+
+		return new NoiseIcicleChunkGenerator(new NoiseIcicleWorldSampler(list));
 	}
 
-	public NoiseIcicleChunkGenerator(NoiseIcicleSamplers icicleSamplers, NoiseIciclePointSampler iciclePointSampler) {
+	public NoiseIcicleChunkGenerator(NoiseIcicleWorldSampler iciclePointSampler) {
 		super(new NoiseIcicleBiomeSource(iciclePointSampler));
-		this.icicleSamplers = icicleSamplers;
 		this.iciclePointSampler = iciclePointSampler;
 		this.biomeSource = ((ChunkGeneratorAccessor) this).getPopulationSource();
 	}
@@ -150,40 +151,85 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 	public CompletableFuture<Chunk> populateNoise(ChunkRegion chunkRegion, ChunkStatus targetStatus, Executor executor, ServerWorld world, ChunkGenerator generator,
 			StructureTemplateManager structureTemplateManager, ServerLightingProvider lightingProvider, Function<Chunk, CompletableFuture<Either<Chunk, Unloaded>>> fullChunkConverter,
 			List<Chunk> chunks, Chunk chunk, boolean regenerate) {
-		return CompletableFuture.supplyAsync(() -> {
+		return CompletableFuture.supplyAsync(Util.debugSupplier("fh_wgen_noise", () -> {
 			for (int ix = 0; ix < 16; ix++) {
 				int x = (chunk.getPos().getStartX() + ix);
 				for (int iz = 0; iz < 16; iz++) {
 					int z = (chunk.getPos().getStartZ() + iz);
 
-//					NoiseIciclePoint sampledPoint = new NoiseIciclePoint(0.125D, -0.8D, 5.0D, 5.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D);
+//						NoiseIciclePoint sampledPoint = new NoiseIciclePoint(0.125D, -0.8D, 5.0D, 5.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D);
 
-					NoiseIciclePoint sampledPoint = this.iciclePointSampler.sample(x, z, chunkRegion.getSeed());
+					NoiseIcicleShape sampledPoint = this.iciclePointSampler.sample(x, z, chunkRegion.getSeed());
 
 					for (int iy = 0; iy < chunk.getHeight(); iy++) {
 						int y = chunk.getBottomY() + iy;
-						sampleHeight(chunkRegion, x, y, z, chunkRegion.getSeed(), sampledPoint, () -> chunk.setBlockState(new BlockPos(x, y, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false));
+						sampleHeight(
+								chunkRegion, x, y, z, chunkRegion.getSeed(), sampledPoint, this.iciclePointSampler.sampleNoise(sampledPoint, x,
+										this.calculateScaledY(world, x, y, z, world.getBottomY(), world.getTopY(), sampledPoint), z, chunkRegion.getSeed()),
+								() -> chunk.setBlockState(new BlockPos(x, y, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false));
 					}
 
-//					IcicleShape shape = new IcicleShape(
-//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.003D),
-//									new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
-//									new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
-//									new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D)),
-//							new NoiseIciclePoint(0.125D, -0.8D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D), 0.6);
+//					NoiseIcicleSettings defaultSettings = new NoiseIcicleSettings(
 //
-//					double height = ((MathHelper.clamp(shape.sampler.GetNoise(x, z, chunkRegion.getSeed()) + 0.5D, shape.clip, 1) - shape.clip) / (1 - shape.clip));
+//							new FastNoiseSampler(new GeneralSettings(true, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 1, 0.007D),
+//									new FractalSettings(FractalType.FBm, 2, 2.3D, 2.0D, -1.0D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 0.6D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 0.4D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2, DomainWarpFractalType.DomainWarpIndependent, RotationType3D.ImproveXZPlanes, 40.0D, 0.003D, 4, 2.3D,
+//											0.4D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 2, 0.01D),
+//									new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 3, 0.01D),
+//									new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 0.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 4, 0.007D),
+//									new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 5, 0.007D),
+//									new FractalSettings(FractalType.FBm, 1, 0.0D, 0.0D, 0.0D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 80.0D, 0.01D, 1, 0.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.OpenSimplex2, RotationType3D.ImproveXZPlanes, 6, 0.01D),
+//									new FractalSettings(FractalType.FBm, 4, 1.5D, 1.0D, 0.4D, 0.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 30.0D, 0.01D, 1, 1.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)),
+//
+//							new FastNoiseSampler(new GeneralSettings(false, NoiseType.Cellular, RotationType3D.ImproveXZPlanes, 7, 0.03D),
+//									new FractalSettings(FractalType.PingPong, 1, 0.0D, 0.0D, 0.0D, 3.2D),
+//									new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance2Add, 1.6D),
+//									new DomainWarpSettings(DomainWarpType.OpenSimplex2Reduced, RotationType3D.ImproveXZPlanes, 25.0D, 0.03D, 1, 0.0D),
+//									new DomainWarpFractalSettings(DomainWarpType.OpenSimplex2Reduced, DomainWarpFractalType.None, RotationType3D.ImproveXZPlanes, 0.0D, 0.0D, 1, 0.0D, 0.0D)
+//
+//							));
+//
+//					FastNoiseSampler hiemalClearLayerSampler = new FastNoiseSampler(new GeneralSettings(false, NoiseType.Perlin, RotationType3D.ImproveXZPlanes, 8, 0.0015D),
+//							new FractalSettings(FractalType.FBm, 2, 3.0D, 0.5D, 0.3D, 2.0D), new CellularSettings(CellularDistanceFunction.Euclidean, CellularReturnType.Distance, 1.0D),
+//							new DomainWarpSettings(DomainWarpType.BasicGrid, RotationType3D.ImproveXZPlanes, 30.0D, 0.005D, 5, 0.5D),
+//							new DomainWarpFractalSettings(DomainWarpType.BasicGrid, DomainWarpFractalType.DomainWarpProgressive, RotationType3D.ImproveXZPlanes, 60.0D, 0.005D, 5, 1.2D, 0.5D));
+//
+//					NoiseIcicleLayer hiemalClearLayer = new NoiseIcicleLayer(hiemalClearLayerSampler, defaultSettings,
+//							new NoiseIcicleShape(0.15D, -0.9D, 5.0D, 5.0D, 1.0D, 0.0D, 265.0D, 0.0D, 265.0D, 0.0D), 0.6);
+//
+//					double height = ((MathHelper.clamp(hiemalClearLayer.worldSampler.GetNoise(x, z, chunkRegion.getSeed()) + 0.5D, hiemalClearLayer.clip, 1) - hiemalClearLayer.clip)
+//							/ (1 - hiemalClearLayer.clip));
 //
 //					for (int iy = 0; iy < chunk.getHeight(); iy++) {
 //						if (iy < height * 50) {
 //							chunk.setBlockState(new BlockPos(x, iy, z), FrostyHeightsBlocks.HIEMARL.getDefaultState(), false);
 //						}
 //					}
-
 				}
 			}
 			return chunk;
-		}, Util.getMainWorkerExecutor());
+		}), Util.getMainWorkerExecutor());
 	}
 
 	@Override
@@ -191,19 +237,19 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 		return 384;
 	}
 
-	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIciclePoint sampledPoint) {
-		return sampleHeight(world, x, y, z, seed, sampledPoint, () -> {
+	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIcicleShape sampledPoint, NoiseIcicleNoiseShape noiseShape) {
+		return sampleHeight(world, x, y, z, seed, sampledPoint, noiseShape, () -> {
 		});
 	}
 
-	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIciclePoint sampledPoint, Runnable function) {
-		return sampleHeight(world, x, y, z, seed, sampledPoint, function, () -> {
+	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIcicleShape sampledPoint, NoiseIcicleNoiseShape noiseShape, Runnable function) {
+		return sampleHeight(world, x, y, z, seed, sampledPoint, noiseShape, function, () -> {
 		});
 	}
 
-	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIciclePoint sampledPoint, Runnable function, Runnable function2) {
+	public int sampleHeight(WorldView world, int x, int y, int z, long seed, NoiseIcicleShape sampledPoint, NoiseIcicleNoiseShape noiseShape, Runnable function, Runnable function2) {
 		int topBlock = world.getBottomY();
-		if (isInNoise(world, x, y, z, world.getBottomY(), world.getTopY(), seed, sampledPoint)) {
+		if (isInNoise(world, x, y, z, world.getBottomY(), world.getTopY(), seed, sampledPoint, noiseShape)) {
 			if (y > topBlock) {
 				topBlock = y;
 			}
@@ -214,44 +260,13 @@ public class NoiseIcicleChunkGenerator extends LiminalChunkGenerator {
 		return topBlock;
 	}
 
-	public double getNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top, seed, sampledPoint);
-		return this.icicleSamplers.cellNoise.GetNoise(
-				(((double) x * sampledPoint.densityXScale / sampledPoint.sparsityXScale) - (this.icicleSamplers.translateXNoise.GetNoise(x, y, z, seed) * Math.pow(sampledPoint.translateXScale, 2)))
-						- (this.icicleSamplers.refineXNoise.GetNoise((double) x * Math.pow(sampledPoint.translateXScale, 1.5D), (double) y * Math.pow(sampledPoint.translateXScale, 1.5D),
-								(double) z * Math.pow(sampledPoint.translateXScale, 1.5D), seed) * sampledPoint.translateXScale),
-				(sampledPoint.densityXScale + sampledPoint.densityZScale + sampledPoint.sparsityXScale + sampledPoint.sparsityZScale)
-						/ this.icicleSamplers.cellNoise.getGeneralSettings().getFrequency(),
-				(((double) z * sampledPoint.densityZScale / sampledPoint.sparsityZScale) - (this.icicleSamplers.translateZNoise.GetNoise(x, y, z, seed) * Math.pow(sampledPoint.translateZScale, 2)))
-						- (this.icicleSamplers.refineZNoise.GetNoise((double) x * Math.pow(sampledPoint.translateZScale, 1.5D), (double) y * Math.pow(sampledPoint.translateZScale, 1.5D),
-								(double) z * Math.pow(sampledPoint.translateZScale, 1.5D), seed) * sampledPoint.translateZScale),
-				seed);
+	public boolean isInNoise(WorldView world, int x, int y, int z, double bottom, double top, long seed, NoiseIcicleShape sampledPoint, NoiseIcicleNoiseShape noiseShape) {
+		return (noiseShape.cellNoise > -((y - sampledPoint.icicleScale - sampledPoint.icicleHeight) / sampledPoint.icicleScale)
+				&& noiseShape.cellNoise > ((y + sampledPoint.wastelandsScale - sampledPoint.wastelandsHeight) / (sampledPoint.wastelandsScale))) && (noiseShape.pokeNoise < sampledPoint.pokeThreshold)
+				&& (noiseShape.spaghettiPokeNoise > sampledPoint.spaghettiPokeThreshold);
 	}
 
-	public double getPokeNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top, seed, sampledPoint);
-		return this.icicleSamplers.pokeNoise.GetNoise(x, y, z, seed);
-	}
-
-	public double getSpaghettiPokeNoiseAt(WorldView world, int x, int iy, int z, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top, seed, sampledPoint);
-		return this.icicleSamplers.spaghettiPokeNoise.GetNoise(x, y, z, seed);
-	}
-
-	public boolean isInNoise(WorldView world, int x, int y, int z, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
-		return isInNoise(world, x, y, z, getNoiseAt(world, x, y, z, bottom, top, seed, sampledPoint), getPokeNoiseAt(world, x, y, z, bottom, top, seed, sampledPoint),
-				getSpaghettiPokeNoiseAt(world, x, y, z, bottom, top, seed, sampledPoint), bottom, top, seed, sampledPoint);
-	}
-
-	public boolean isInNoise(WorldView world, int x, int iy, int z, double n, double pn, double spn, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
-		double y = calculateScaledY(world, x, iy, z, bottom, top, seed, sampledPoint);
-
-		return (n > -((y - sampledPoint.icicleScale - sampledPoint.icicleHeight) / sampledPoint.icicleScale)
-				&& n > ((y + sampledPoint.wastelandsScale - sampledPoint.wastelandsHeight) / (sampledPoint.wastelandsScale))) && (pn < sampledPoint.pokeThreshold)
-				&& (spn > sampledPoint.spaghettiPokeThreshold);
-	}
-
-	public double calculateScaledY(WorldView world, int x, int iy, int z, double bottom, double top, long seed, NoiseIciclePoint sampledPoint) {
+	public double calculateScaledY(WorldView world, int x, int iy, int z, double bottom, double top, NoiseIcicleShape sampledPoint) {
 		double y = iy;
 		y *= sampledPoint.totalHeightScale;
 		y += sampledPoint.totalHeightShift;

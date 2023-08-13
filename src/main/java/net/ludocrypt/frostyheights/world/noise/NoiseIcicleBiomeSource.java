@@ -7,20 +7,21 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.registry.Holder;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.source.BiomeCoords;
 import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler;
 
 public class NoiseIcicleBiomeSource extends BiomeSource {
 
 	public static final Codec<NoiseIcicleBiomeSource> CODEC = RecordCodecBuilder.create((instance) -> {
-		return instance.group(NoiseIciclePointSampler.CODEC.fieldOf("icicle_point_sampler").stable().forGetter((biomeSource) -> {
+		return instance.group(NoiseIcicleWorldSampler.CODEC.fieldOf("icicle_point_sampler").stable().forGetter((biomeSource) -> {
 			return biomeSource.iciclePointSampler;
 		})).apply(instance, instance.stable(NoiseIcicleBiomeSource::new));
 	});
 
-	private final NoiseIciclePointSampler iciclePointSampler;
+	private final NoiseIcicleWorldSampler iciclePointSampler;
 
-	public NoiseIcicleBiomeSource(NoiseIciclePointSampler iciclePointSampler) {
+	public NoiseIcicleBiomeSource(NoiseIcicleWorldSampler iciclePointSampler) {
 		super(iciclePointSampler.getBiomes());
 		this.iciclePointSampler = iciclePointSampler;
 	}
@@ -32,10 +33,10 @@ public class NoiseIcicleBiomeSource extends BiomeSource {
 
 	@Override
 	public Holder<Biome> getNoiseBiome(int x, int y, int z, MultiNoiseSampler multiNoiseSampler) {
-		return this.iciclePointSampler.sampleBiome(x, z, ((MultiNoiseSamplerExtensions) (Object) multiNoiseSampler).quilt$getSeed());
+		return this.iciclePointSampler.sampleBiome(BiomeCoords.toBlock(x), BiomeCoords.toBlock(z), ((MultiNoiseSamplerExtensions) (Object) multiNoiseSampler).quilt$getSeed());
 	}
 
-	public NoiseIciclePointSampler getIciclePointSampler() {
+	public NoiseIcicleWorldSampler getIciclePointSampler() {
 		return iciclePointSampler;
 	}
 
