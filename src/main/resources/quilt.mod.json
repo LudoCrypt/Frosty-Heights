@@ -6,10 +6,11 @@
 		"version": "${version}",
 		"metadata": {
 			"name": "Frosty Heights",
-			"description": "A bone-chilling realm to explore, featuring many friends and foes.\n\nFull Credits:\nLudoCrypt: Author, Develoepr, Musician, Sound Designer\nShai: Author, Artist\nEB MARIO: Animator, 3D Mob Designer\nUraneptus: Logo Designer",
+			"description": "Frosty Heights",
 			"contributors": {
-				"LudoCrypt": "Author",
-				"Shai": "Lead Artist",
+				"Team Crypt": "Author",
+				"Shai": "Author",
+				"LudoCrypt": "Developer",
 				"EB MARIO": "Lead Mob Designer",
 				"Uraneptus": "Lead Logo Designer"
 			},
@@ -24,26 +25,10 @@
 		"entrypoints": {
 			"init": "net.ludocrypt.frostyheights.FrostyHeights",
 			"client_init": "net.ludocrypt.frostyheights.client.FrostyHeightsClient",
-			"modmenu": "net.ludocrypt.frostyheights.config.FrostyHeightsModmenu",
-			"limlib:dimension_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
-			"limlib:registry_loader_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
-			"limlib:sound_effects_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
-			"limlib:skybox_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld",
-			"limlib:dimension_effects_bootstrap": "net.ludocrypt.frostyheights.init.FrostyHeightsWorld"
+			"modmenu": "net.ludocrypt.frostyheights.config.HiemalModmenu",
+			"limlib:registrar": "net.ludocrypt.frostyheights.init.HiemalWorld"
 		},
 		"depends": [
-			{
-				"id": "quilt_loader",
-				"versions": ">=0.17.0-"
-			},
-			{
-				"id": "quilted_fabric_api",
-				"versions": ">=4.0.0-"
-			},
-			{
-				"id": "minecraft",
-				"versions": ">=1.19.2"
-			}
 		]
 	},
 	"mixin": "frostyheights.mixins.json",

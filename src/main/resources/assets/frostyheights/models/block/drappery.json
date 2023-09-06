@@ -1,7 +1,0 @@
-{
-	"parent": "minecraft:block/cube_column",
-	"textures": {
-		"end": "frostyheights:block/drappery_top",
-		"side": "frostyheights:block/drappery"
-	}
-}

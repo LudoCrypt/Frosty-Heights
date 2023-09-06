@@ -3,12 +3,11 @@ minecraft = "1.20.1"
 quilt_mappings = "1.20.1+build.1"
 quilt_loader = "0.19.1"
 
-quilted_fabric_api = "7.0.3+0.83.1-1.20.1"
-terraformersmc_modmenu = "7.1.0"
+quilted_fabric_api = "7.2.1+0.88.0-1.20.1"
+terraformersmc_modmenu = "7.2.1"
 limlib = "8.1.8"
-specialmodels = "1.2.5"
 
-midnight_lib = "1.4.1-quilt"
+cloth = "11.1.106"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -21,9 +20,8 @@ quilted_fabric_api_deprecated = { module = "org.quiltmc.quilted-fabric-api:quilt
 terraformersmc_modmenu = { module = "com.terraformersmc:modmenu", version.ref = "terraformersmc_modmenu" }
 
 ludocrypt_limlib = { module = "com.github.LudoCrypt:Liminal-Library", version.ref = "limlib" }
-ludocrypt_specialmodels = { module = "com.github.LudoCrypt:Special-Models", version.ref = "specialmodels" }
 
-midnight_lib = { module = "maven.modrinth:midnightlib", version.ref = "midnight_lib" }
+shedaniel_cloth = { module = "me.shedaniel.cloth:cloth-config-fabric", version.ref = "cloth" }
 
 [bundles]
 quilted_fabric_api = ["quilted_fabric_api", "quilted_fabric_api_deprecated"]

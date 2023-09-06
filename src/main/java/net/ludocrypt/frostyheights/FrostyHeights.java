@@ -5,28 +5,22 @@ import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.midnightdust.lib.config.MidnightConfig;
-import net.ludocrypt.frostyheights.config.FrostyHeightsConfig;
-import net.ludocrypt.frostyheights.init.FrostyHeightsBiomes;
-import net.ludocrypt.frostyheights.init.FrostyHeightsBlocks;
-import net.ludocrypt.frostyheights.init.FrostyHeightsCommands;
-import net.ludocrypt.frostyheights.init.FrostyHeightsItems;
-import net.ludocrypt.frostyheights.init.FrostyHeightsParticles;
-import net.ludocrypt.frostyheights.init.FrostyHeightsSounds;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import net.ludocrypt.frostyheights.config.HiemalConfig;
+import net.ludocrypt.frostyheights.init.HiemalItems;
+import net.ludocrypt.frostyheights.init.HiemalSounds;
 import net.minecraft.util.Identifier;
 
 public class FrostyHeights implements ModInitializer {
+
 	public static final Logger LOGGER = LoggerFactory.getLogger("Frosty Heights");
 
 	@Override
 	public void onInitialize(ModContainer mod) {
-		MidnightConfig.init("frostyheights", FrostyHeightsConfig.class);
-		FrostyHeightsSounds.init();
-		FrostyHeightsBlocks.init();
-		FrostyHeightsItems.init();
-		FrostyHeightsParticles.init();
-		FrostyHeightsBiomes.init();
-		FrostyHeightsCommands.init();
+		AutoConfig.register(HiemalConfig.class, GsonConfigSerializer::new);
+		HiemalSounds.init();
+		HiemalItems.init();
 	}
 
 	public static Identifier id(String id) {

@@ -7,12 +7,16 @@ archivesBaseName = project.archives_base_name
 version = project.version
 group = project.maven_group
 
+loom {
+	accessWidenerPath = file("src/main/resources/frostyheights.accesswidener")
+}
+
 repositories {
 	maven {
-		url = 'https://ladysnake.jfrog.io/artifactory/mods/'
+		url = 'https://ladysnake.jfrog.io/artifactory/mods'
     }
 	maven {
-		url = 'https://jitpack.io/'
+		url = 'https://jitpack.io'
     }
 	maven {
 		url = 'https://maven.shedaniel.me/'
@@ -21,7 +25,7 @@ repositories {
 		url = 'https://maven.terraformersmc.com/'
 	}
 	maven {
-		url 'https://api.modrinth.com/maven/'
+		url 'https://api.modrinth.com/maven'
     }
 }
 
@@ -35,10 +39,11 @@ dependencies {
 
 	modImplementation libs.terraformersmc.modmenu
 
-	includeMod libs.midnight.lib
-
 	includeMod libs.ludocrypt.limlib
-	includeMod libs.ludocrypt.specialmodels
+	includeMod libs.shedaniel.cloth
+
+	implementation "com.sudoplay.joise:joise:1.1.0"
+	include "com.sudoplay.joise:joise:1.1.0"
 }
 
 def includeMod(var dep) {
