@@ -426,6 +426,7 @@ public class HiemalJoiseBuilder {
 		ModuleTiers tiersModule = new ModuleTiers();
 		tiersModule.setSource(module);
 		tiersModule.setNumTiers(tiers);
+		tiersModule.setSmooth(false);
 		return new HiemalJoiseBuilder(tiersModule);
 	}
 
