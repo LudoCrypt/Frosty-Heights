@@ -18,6 +18,7 @@ import net.ludocrypt.frostyheights.noise.registry.CodecGradientXModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecGradientYModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecGradientZModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecInvertModule;
+import net.ludocrypt.frostyheights.noise.registry.CodecMagnitudeModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecMaxModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecMinModule;
 import net.ludocrypt.frostyheights.noise.registry.CodecModuleContainer;
@@ -72,7 +73,7 @@ public class HiemalNoiseBuilder {
 	}
 
 	public static HiemalNoiseBuilder mag(HiemalNoiseBuilder x, HiemalNoiseBuilder y, HiemalNoiseBuilder z) {
-		return new HiemalNoiseBuilder(new CodecScaleOffsetModule(x.build(), y.build(), z.build()));
+		return new HiemalNoiseBuilder(new CodecMagnitudeModule(x.build(), y.build(), z.build()));
 	}
 
 	public HiemalNoiseBuilder at(HiemalNoiseBuilder x, HiemalNoiseBuilder y, HiemalNoiseBuilder z) {
@@ -143,7 +144,7 @@ public class HiemalNoiseBuilder {
 		return new HiemalNoiseBuilder(new CodecCorrectModule(this.build(), low, high, samples, sampleScale));
 	}
 
-	public HiemalNoiseBuilder at(HiemalNoiseBuilder angle, HiemalNoiseBuilder x, HiemalNoiseBuilder y, HiemalNoiseBuilder z) {
+	public HiemalNoiseBuilder rotate(HiemalNoiseBuilder angle, HiemalNoiseBuilder x, HiemalNoiseBuilder y, HiemalNoiseBuilder z) {
 		return new HiemalNoiseBuilder(new CodecRotateModule(this.build(), angle.build(), x.build(), y.build(), z.build()));
 	}
 
